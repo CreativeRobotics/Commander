@@ -55,7 +55,7 @@ Because Commander checks the user commands first you can overide any of the buil
 
 There are a full set of Stream print and write functions that can be used, and they ensure that responses will be routed to the Commander objects specified output port, and to the aux port if enabled, and they ensure that any pre or postfix formatting is applied.
 
-The command match system relies on each comment ending with either a newline or a space. If the command doesn't have any arguments it will normally end in a newline but if it has any arguments then they must be seperated by a space or the user defined eocCharacter (space by default) - By setting eocCharacter to '=' you can use a command to set a parameter such as 'myvariable=3' rather than 'myvariable 3' (although both will work).
+The command match system relies on each comment ending with either a newline or a space, or a special user defined character. If the command doesn't have any arguments it will normally end in a newline but if it has any arguments then they must be seperated by a space or the user defined eocCharacter (which is an equals by default) - The eocCharacter allows you use commands like this: 'myvariable=3' where myvariable is the command and 3 is the argument.
 
 Disclaimer: I'm not the best software engineer in the world so there may be some bits of sillyness in my code. I welcome contributions that will improve Commander so long as they maintain a good balance between features and efficiency.
 
