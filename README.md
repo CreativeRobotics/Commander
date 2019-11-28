@@ -1,4 +1,6 @@
-Commander is a system for handling commands sent over serial ports or other Stream objects. Its designed to make it easy to create complex and powerfull text based interfaces for controlling your sketch.
+# Commander is a system for handling commands sent over serial ports or other Stream objects.
+
+## Its designed to make it easy to create complex and powerful text based interfaces for controlling your sketch.
 
 It allows you to define a list of text commands, a function to handle each command, and some help text that can be displayed when the 'help' command is sent. All the work of reading the incoming stream data, identifying the appropriate function and calling the handler is done by the commander object. It will run on most Arduino boards but is more suited to devices with large memory.
 
@@ -10,37 +12,39 @@ Commander is designed so that the list of commands and associated handlers and h
 
 Commander can also handle nested commands and incorporates a set of functions for extracting any payload that comes after a command and for parsing variables in the payload. It can also augment responses sent to its output and auxiluary Streams to add prefix and postfix text, for exampe enclosing each line with opening and closing html tags, or prefixing specified lines with a command.
 
-In built commands like Help will generate a help page listing all the commands and any help text for them. Additional in build commands can be used to toggle error reporting and port echoing and all built in commands can be overidden by the user with their own handler.
+Built in commands like Help will generate a help page listing all the commands and any help text for them. Additional in built commands can be used to toggle error reporting and port echoing and all built in commands can be overidden by the user with their own handler.
 
-Commander can use an optional command prompt with user defined text to emulate the feel of a command line. It also has a user define 'reaload' character can be sent and will reload the last command. By default this is / so, for example, if you sent a command called 'print sensors' and then want to send the same command again, you just need to type / to repeat it.
+Commander can use an optional command prompt with user defined text to emulate the feel of a command line, this prompt can be changed dynamically to indicate the current context, for example it can show the working directory of a file system, or the title of a sub command list. Commander also has a user defined 'reaload' character that will reload the last command. By default this is / so, for example, if you sent a command called 'print sensors' and then want to send the same command again, you just need to type / to repeat it. A user defined 'comment' character (# by default) can be put in front of a line to tell Commander to ignore it.
 
-The following list of examples demonstrate various ways to use Commander:
+### The following list of examples demonstrate various ways to use Commander:
 
-BasicCommands: Demonstrated setting and getting integer and float values with a command list.
+__BasicCommands:__ Demonstrated setting and getting integer and float values with a command list.
 
-QuickSet: Demonstrates an in built method for packing some commands in a single command handler for faster coding whilst retaining the help system for listing commands.
+__QuickSet:__ Demonstrates an in built method for packing some commands in a single command handler for faster coding whilst retaining the help system for listing commands.
 
-ESP32-SerialBTCommands: Uses a BluetoothSerial object so commands can be sent vial bluetooth.
+__ESP32-SerialBTCommands:__ Uses a BluetoothSerial object so commands can be sent vial bluetooth.
 
-FileRead: Open an SD card file that contains a set of commands and read the contents into Commander. Responses to commands are fed back to a Serial port.
+__FileRead:__ Open an SD card file that contains a set of commands and read the contents into Commander. Responses to commands are fed back to a Serial port.
 
-FileReadLog: Open an SD card file that contains a set of commands and read the contents into Commander. Responses to commands are written to another file and copied to a Serial port.
+__FileReadLog:__ Open an SD card file that contains a set of commands and read the contents into Commander. Responses to commands are written to another file and copied to a Serial port.
 
-FileNavigation: Used SDFat and a set of commands for listing files, navigating and creating directories, renaming and deleting files and directories and printing out files.
+__FileNavigation:__ Used SDFat and a set of commands for listing files, navigating and creating directories, renaming and deleting files and directories and printing out files.
 
-FormattedReplies: Shows how to use the pre and posfix formating, and nested commands so formatting for another command can be invoked.
+__FormattedReplies:__ Shows how to use the pre and posfix formating, and nested commands so formatting for another command can be invoked.
 
-SimpleMultiLayer: Shows how three command lists can be used with one Commander object to create a multi level command structure. This example has sub commands for setting variable, and more for reading back variables. These commands can be invoked from the top level (e.g 'get int') or the sub level can be invoked ('get') and then commands from that level invoked directly ('int') before an 'exit' command returns you to the top level. The help command can be used for every level.
+__SimpleMultiLayer:__ Shows how three command lists can be used with one Commander object to create a multi level command structure. This example has sub commands for setting variable, and more for reading back variables. These commands can be invoked from the top level (e.g 'get int') or the sub level can be invoked ('get') and then commands from that level invoked directly ('int') before an 'exit' command returns you to the top level. The help command can be used for every level.
 
-FullMultiLayer: This example behaves in an almost identical way to SimpleMultiLayer but uses three Commander objects. Navigating between different levels is handled by passing control from one Commander object to another rather than loading different command lists into the same object.
+__FullMultiLayer:__ This example behaves in an almost identical way to SimpleMultiLayer but uses three Commander objects. Navigating between different levels is handled by passing control from one Commander object to another rather than loading different command lists into the same object.
 
-NumberCommand: (To Be Done!) Demonstrates a special class of command for handling numbers. It is designed to allow data files to be uploaded and unpacked into an array.
+__NumberCommand:__ (To Be Done!) Demonstrates a special class of command for handling numbers. It is designed to allow data files to be uploaded and unpacked into an array.
 
-TelnetCommand: (To Be Done) Interface a Telnet session to Commander so that commands can be accessed remotely via WiFi.
+__TelnetCommand:__ (To Be Done) Interface a Telnet session to Commander so that commands can be accessed remotely via WiFi.
 
-htmlCommand: (To Be Done) Feed HTML page requests to Commander and generate HTML formatted responses in reply.
+__htmlCommand:__ (To Be Done) Feed HTML page requests to Commander and generate HTML formatted responses in reply.
 
 Other to be done: Better documantation of the API and a Git Wiki.
+
+Disclaimer: I'm not the best software engineer in the world so there may be some bits of sillyness in my code. I welcome contributions that will improve Commander so long as they maintain a good balance between features and efficiency.
 
 Written by Bill Bigge.
 MIT license, all text above must be included in any redistribution
