@@ -53,10 +53,10 @@ typedef union {
   uint16_t reg;  //used for register access 
 } cmdSettings_t;
 
-//const String CommanderVersionNumber = "1.0.0";
+//const String CommanderVersionNumber = "1.0.1";
 const uint8_t majorVersion = 1;
 const uint8_t minorVersion = 0;
-const uint8_t subVersion   = 0;
+const uint8_t subVersion   = 1;
 
 typedef struct portSettings_t{
 	Stream *inPort = NULL;
@@ -314,6 +314,7 @@ public:
 	String bufferString = ""; //the buffer - public so user functions can read it
 	String commanderName = "CMD";
 	char promptCharacter = '>';
+	char eocCharacter = '='; //special end of command character - Is used IN ADDITION to the default space char to mark the end of a command
 	//#if defined (CMD_ENABLE_FORMATTING)
 	String prefixString = "";
 	String postfixString = "";

@@ -42,6 +42,23 @@ __TelnetCommand:__ (To Be Done) Interface a Telnet session to Commander so that 
 
 __htmlCommand:__ (To Be Done) Feed HTML page requests to Commander and generate HTML formatted responses in reply.
 
+
+### How it works (roughly speaking)
+
+The command list is an array of structures and each element contains the command string, a function pointer, and a help text string. When you load a command list into a Commander object is scans the list and records the lengths of all the commands.
+
+When Commander reads a Stream or is fed a String it tries to match the start of the string to a command (unless it was rejected as a comment or the reload character was detected). If a command match is found it invokes the command handler function (supplied by the user) and waits for it to finish.
+
+If it can't find a match it looks for one in the built in commands and will execute their handlers if a match is found. When Commander is finished it will check to see if the command prompt is enabled and of so, it will print out the prompt on a new line.
+
+Because Commander checks the user commands first you can overide any of the built in commands with your own.
+
+There are a full set of Stream print and write functions that can be used, and they ensure that responses will be routed to the Commander objects specified output port, and to the aux port if enabled, and they ensure that any pre or postfix formatting is applied.
+
+The command match system relies on each comment ending with either a newline or a space. If the command doesn't have any arguments it will normally end in a newline but if it has any arguments then they must be seperated by a space or the user defined eocCharacter (space by default) - By setting eocCharacter to '=' you can use a command to set a parameter such as 'myvariable=3' rather than 'myvariable 3' (although both will work).
+
+Disclaimer: I'm not the best software engineer in the world so there may be some bits of sillyness in my code. I welcome contributions that will improve Commander so long as they maintain a good balance between features and efficiency.
+
 Other to be done: Better documantation of the API and a Git Wiki.
 
 Disclaimer: I'm not the best software engineer in the world so there may be some bits of sillyness in my code. I welcome contributions that will improve Commander so long as they maintain a good balance between features and efficiency.

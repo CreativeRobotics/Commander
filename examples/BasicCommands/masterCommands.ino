@@ -6,6 +6,8 @@ const commandList_t masterCommands[] = {
   {"set int",    setIntHandler,   "set an int"},
   {"get float",  getFloatHandler, "get a float"},
   {"set float",  setFloatHandler, "set a float"},
+  {"myint",      setIntHandler,   "try myint=23"},
+  {"myfloat",    setFloatHandler, "try myfloat=23.5"},
 };
  /*
   * This needs to be passed to the commander object so it knows how big the array of commands is, but this happens earlier in setup().

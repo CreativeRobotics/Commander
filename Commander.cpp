@@ -598,6 +598,7 @@ bool Commander::checkCommand(uint16_t cmdIdx){
 	if( bufferString.charAt( commandLengths[cmdIdx] ) == ' ' ) return true; //space after command
 	if( bufferString.charAt( commandLengths[cmdIdx]-1 ) == ' ' ) return true; //command includes a trailing space
 	if( isEndOfLine( bufferString.charAt( commandLengths[cmdIdx] ) ) ) return true; ////end of line after command
+	if(bufferString.charAt( commandLengths[cmdIdx] ) == eocCharacter) return true; //alternative end of command character detected (e.g the '=' char)
 	return false; //failed check
 }
 /*

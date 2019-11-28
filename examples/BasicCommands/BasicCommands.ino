@@ -11,13 +11,12 @@ int myInt = 0;
 float myFloat = 0.0;
 //SETUP ---------------------------------------------------------------------------
 void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
-  //Serial.begin(115200);
+  Serial.begin(115200);
   cmd.begin(&Serial, masterCommands, numOfMasterCmds);
   cmd.enablePrompt(); //enable the command prompt
   cmd.echo(true);     //Echo incoming characters to theoutput port
   cmd.enableErrors(); //error messages are enabled - it will tell us if we issue any unrecognised commands
+
   while(!Serial){;}
   Serial.println("Hello: Type 'help' to get help");
   cmd.printCommandPrompt();
