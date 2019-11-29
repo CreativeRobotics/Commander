@@ -57,7 +57,7 @@ There are a full set of Stream print and write functions that can be used, and t
 
 The command match system relies on each comment ending with either a newline or a space, or a special user defined character. If the command doesn't have any arguments it will normally end in a newline but if it has any arguments then they must be separated by a space, or the user defined ‘eocCharacter’ (which is ’=’ by default) - The eocCharacter allows you use commands like this: 'myvariable=3' where myvariable is the command and 3 is the argument.
 
-###Basic code structure
+### Basic code structure
 
 To create a command system the user needs to create the command list array, and all the command function handlers. A command list array will look something like this (This is all taken from the BasicCommands example):
 
