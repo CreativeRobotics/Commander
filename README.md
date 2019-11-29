@@ -55,13 +55,14 @@ Because Commander checks the user commands first you can override any of the bui
 
 There are a full set of Stream print and write functions that can be used, and they ensure that printed responses will be routed to the Commander objects specified output port, and to the aux port if enabled, and they ensure that any pre or postfix formatting is applied.
 
-The command match system relies on each comment ending with either a newline or a space, or a special user defined character. If the command doesn't have any arguments it will normally end in a newline but if it has any arguments then they must be separated by a space, or the user defined ‘eocCharacter’ (which is ’=’ by default) - The eocCharacter allows you use commands like this: 'myvariable=3' where myvariable is the command and 3 is the argument.
+The command match system relies on each comment ending with either a newline or a space, or a special user defined character. If the command doesn't have any arguments it will normally end in a newline but if it has any arguments then they must be separated by a space, or the user defined â€˜eocCharacterâ€™ (which is â€™=â€™ by default) - The eocCharacter allows you use commands like this: 'myvariable=3' where myvariable is the command and 3 is the argument.
 
 ###Basic code structure
 
 To create a command system the user needs to create the command list array, and all the command function handlers. A command list array will look something like this (This is all taken from the BasicCommands example):
 
-```const commandList_t masterCommands[] = {
+```
+const commandList_t masterCommands[] = {
   {"hello",      helloHandler,    "hello"},
   {"get int",    getIntHandler,   "get an int"},
   {"set int",    setIntHandler,   "set an int"},
@@ -81,7 +82,8 @@ The command handlers need to follow the same template. Each must return a boolea
 
 The function template looks like this:
 
-```bool myFunc(Commander &Cmdr){
+```
+bool myFunc(Commander &Cmdr){
   //put your command handler code here
   return 0;
 }
@@ -105,7 +107,8 @@ __Important note: If you want to place the Command array after the setup() funct
 To do this you need to _forward declare_ the command list array and the _numOfMasterCmds_ variable before the setup() function like so:
 
 
-```extern const uint16_t numOfMasterCmds;
+```
+extern const uint16_t numOfMasterCmds;
 extern const commandList_t masterCommands[];
 ```
 __Command Handler Functions__
@@ -114,7 +117,8 @@ When you write your command handler you can access the Commanders methods and th
 
 In this example the command handler simply used the Cmdr objects print methods to reply with a message that includes the contents of the buffer.
 
-```bool helloHandler(Commander &Cmdr){
+```
+bool helloHandler(Commander &Cmdr){
   Cmdr.print("Hello! this is ");
   Cmdr.println(Cmdr.commanderName);
   Cmdr.print("This is my buffer: ");
@@ -125,7 +129,8 @@ In this example the command handler simply used the Cmdr objects print methods t
 
 Commander has a built in method of parsing integer and float values, this can be used to extract numeric values from a commands payload.
 
-```bool setIntHandler(Commander &Cmdr){
+```
+bool setIntHandler(Commander &Cmdr){
   if(Cmdr.getInt(myInt)){
     Cmdr.print("myInt set to ");
     Cmdr.println(myInt);
@@ -137,7 +142,8 @@ The method Cmdr.getInt(myInt) checks to see if it can find the start of a number
 
 The _getInt()_ and _getFloat()_ methods keep track of where they are in the buffer so you can use them to extract a series of numbers with one command. The following code shows how to unpack up to four ints into an array. If you include less than four ints after the command, it will unpack the ones you did send, and if you include too many it will unpack only the first four.
 
-```bool getIntsHandler(Commander &Cmdr){
+```
+bool getIntsHandler(Commander &Cmdr){
   //create an array to store any values we find
   int values[4] = {0,0,0,0};
   for(int n = 0; n < 4; n++){
