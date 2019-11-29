@@ -8,6 +8,8 @@ const commandList_t masterCommands[] = {
   {"set float",  setFloatHandler, "set a float"},
   {"myint",      setIntHandler,   "try myint=23"},
   {"myfloat",    setFloatHandler, "try myfloat=23.5"},
+  {"set ints",   getIntsHandler,   "set up to four ints"},
+  {"set floats",   getFloatsHandler,   "set up to four floats"},
 };
  /*
   * This needs to be passed to the commander object so it knows how big the array of commands is, but this happens earlier in setup().
@@ -27,6 +29,8 @@ const uint16_t numOfMasterCmds = sizeof(masterCommands);
 bool helloHandler(Commander &Cmdr){
   Cmdr.print("Hello! this is ");
   Cmdr.println(Cmdr.commanderName);
+  Cmdr.print("This is my buffer: ");
+  Cmdr.print(Cmdr.bufferString);
   return 0;
 }
 
@@ -53,6 +57,44 @@ bool setFloatHandler(Commander &Cmdr){
   if(Cmdr.getFloat(myFloat)){
     Cmdr.print("myFloat set to ");
     Cmdr.println(myFloat, 4); //print with 4 decimal places
+  }
+  return 0;
+}
+
+bool getIntsHandler(Commander &Cmdr){
+  //create an array to store any values we find
+  int values[4] = {0,0,0,0};
+  for(int n = 0; n < 4; n++){
+    //try and unpack an int, if it fails there are no more left so exit the loop
+    if(Cmdr.getInt(values[n])){
+      Cmdr.print("unpacked ");
+      Cmdr.println(values[n]);
+    }else break;
+  }
+  //print it out
+  Cmdr.println("Array contents after processing:");
+  for(int n = 0; n < 4; n++){
+    Cmdr.print(n);
+    Cmdr.print(" = ");
+    Cmdr.println(values[n]);
+  }
+  return 0;
+}
+
+bool getFloatsHandler(Commander &Cmdr){
+  float values[4] = {0.0,0.0,0.0,0.0};
+  int n = 0;
+  for(n = 0; n < 4; n++){
+    if(Cmdr.getFloat(values[n])){
+      Cmdr.print("unpacked ");
+      Cmdr.println(values[n]);
+    }else break;
+  }
+  Cmdr.println("Array contents after processing:");
+  for(n = 0; n < 4; n++){
+    Cmdr.print(n);
+    Cmdr.print(" = ");
+    Cmdr.println(values[n]);
   }
   return 0;
 }

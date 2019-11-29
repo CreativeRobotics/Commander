@@ -359,13 +359,21 @@ bool Commander::getDouble(double &myDouble){
 }
 //Try to find the next numeral from where readIndex is
 bool Commander::tryGet(){
-	if(dataReadIndex < endIndexOfLastCommand) return 0; //nothing to see here
+	if(dataReadIndex < endIndexOfLastCommand){
+		//println("tryget found no payload");
+		return 0; //nothing to see here
+	}
 	int indx = findNumeral(dataReadIndex); //find the next valid number string start
+	
+	//print("findNumeral returned ");
+	//println(indx);
 	if(indx < 0){ //return if it doesn't exist
+		//println("returning false ");
 		dataReadIndex = 0;
 		return 0;
 	}
 	dataReadIndex = indx;
+	//println("returning true");
 	return 1;
 }
 //find the next space, set readIndex to it
@@ -383,10 +391,13 @@ bool Commander::nextSpace(){
 bool Commander::nextDelimiter(){
 	for(uint16_t n = dataReadIndex; n < bufferSize; n++){
 		if(isDelimiter(bufferString.charAt(n))) {
+			//print("Next delimiter found at ");
+			//println(n);
 			dataReadIndex = n;
 			return 1;
 		}
 	}
+	dataReadIndex = 0;
 	return 0;
 }
 //==============================================================================================================
@@ -664,9 +675,27 @@ void Commander::unknownCommand(){
 //==============================================================================================================
 int Commander::findNumeral(uint8_t startIdx){
 	//return the index of the start of a number string
+	//print("FindNumeral started from ");
+	//println(startIdx);
 	for(uint8_t n = startIdx; n < bufferSize; n++){
-		if(bufferString.charAt(n) == endOfLine) return -1;
-		if( isNumeral( bufferString.charAt(n) ) || ( bufferString.charAt(n) == 45 && isNumeral( bufferString.charAt(n+1) ) ) )  return n;
+		if(bufferString.charAt(n) == endOfLine){
+			//println("found EOL");
+			return -1;
+		}
+		if( isNumeral( bufferString.charAt(n) ) ){
+			//print("IsNumeral sent ");
+			//print(bufferString.charAt(n));
+			//print(" from buffer index ");
+			//print(n);
+			//print(" isNumeral returned true, returning index = ");
+			//println(n);
+			return n;
+		}
+		if( bufferString.charAt(n) == 45 && isNumeral( bufferString.charAt(n+1) ) ) {
+			//print("isNumeral returned true, after a minus sign, returning index = ");
+			//println(n);
+			return n;
+		}
 	}
 	return -1;
 }
@@ -677,7 +706,7 @@ bool Commander::isNumber(String str){
 	return false;
 }
 bool Commander::isDelimiter(char ch){
-	//returns true if the first character is NOT valid number, minus sign or NL/CR
+	//returns true if the first character is NOT valid number, minus sign, dot or NL/CR
 	if( isNumeral( ch ) || ch == '.' || ch == '-' || ch == '\n' || ch == '\r' || ch == 0) return false;
 	return true;
 }
