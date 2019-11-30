@@ -1,10 +1,12 @@
 #include "Commander.h"
 
 //Initialise the array of internal commands with the constructor
-Commander::Commander(): internalCommands ({ "help",
+Commander::Commander(): internalCommands ({ "U",
+																					  "X",
+																					  "help",
 																						"?",
 																						"echo",
-																						"echo alt",
+																						"echo aux",
 																						"enable",
 																						"errors"}){
 	bufferString.reserve(bufferSize);
@@ -12,10 +14,12 @@ Commander::Commander(): internalCommands ({ "help",
 	commandState.reg = COMMANDER_DEFAULT_STATE_SETTINGS;
 }
 //==============================================================================================================
-Commander::Commander(uint16_t reservedBuffer): internalCommands ({ "help",
+Commander::Commander(uint16_t reservedBuffer): internalCommands ({ 	"U",
+																																		"X",
+																																		"help",
 																																		"?",
 																																		"echo",
-																																		"echo alt",
+																																		"echo aux",
 																																		"enable",
 																																		"errors"}){
 	//bufferString.reserve(bufferSize);
@@ -67,9 +71,9 @@ bool Commander::update(){
 		while(ports.inPort->available()){
 			//ports.inPort->println("Reading Data");
 			int inByte = ports.inPort->read();
-			if(ports.settings.bit.echoTerminal) ports.outPort->write(inByte);
+			if(ports.settings.bit.echoTerminal && !ports.settings.bit.locked) ports.outPort->write(inByte);
 	
-			if(ports.settings.bit.echoToAlt && ports.altPort) {
+			if(ports.settings.bit.echoToAlt && ports.altPort && !ports.settings.bit.locked) {
 				ports.altPort->write(inByte);
 			}
 
@@ -177,7 +181,7 @@ void Commander::transfer(Commander& Cmdr){
 	//the attached ports need to be copied to this one - we assume the user has backed them up first
 	ports = Cmdr.getPortSettings();
 	if( ports.settings.bit.multiCommanderMode ) Cmdr.disablePrompt(); //disable the prompt for the other commander
-  if(ports.settings.bit.commandPromptEnabled) printCommandPrompt();
+  printCommandPrompt();
 }
 //==============================================================================================================
 
@@ -402,6 +406,7 @@ bool Commander::nextDelimiter(){
 }
 //==============================================================================================================
 void Commander::printCommandPrompt(){
+	if(!ports.settings.bit.commandPromptEnabled) return;
 		print(commanderName);
 		print(promptCharacter);
 }
@@ -443,9 +448,23 @@ uint8_t Commander::getLength(uint8_t indx){
 }
 //==============================================================================================================
 bool Commander::handleCommand(){
+	if(ports.settings.bit.locked && ports.settings.bit.useHardLock){
+		//if the command string starts with unlock then handle unlocking
+		//println("Trying to unlock");
+		tryUnlock();
+		resetBuffer();
+		if(!ports.settings.bit.locked){
+			
+			println(unlockMessage);
+			printCommandPrompt();
+		}
+		return 0;
+	}
 	if(ports.settings.bit.commandPromptEnabled && !ports.settings.bit.echoTerminal) write('\n'); //write a newline if the command prompt is enabled so reply messages appear on a new line
   
 	if(commandState.bit.autoFormat) startFormatting();
+	/*Match command will handle internal commands 
+	*/
 	commandVal = matchCommand();
   bool returnVal = false;
 	if(commandVal == COMMENT_COMMAND) {
@@ -460,12 +479,12 @@ bool Commander::handleCommand(){
 		unknownCommand();
     returnVal = 0; //unknown command function
   }
-	else if(commandVal == NUMERAL_COMMAND){
+	else if(commandVal == NUMERAL_COMMAND && ports.settings.bit.locked == false){
 		  returnVal = handleIndexCommand();
 			if(returnVal == 1) unknownCommand();
 	}
 	
-  else{
+  else if(ports.settings.bit.locked == false){
 		endIndexOfLastCommand = commandLengths[commandVal];
 		dataReadIndex = endIndexOfLastCommand;
 		//call the appropriate function from the function list and return the result
@@ -475,9 +494,24 @@ bool Commander::handleCommand(){
 
   resetBuffer();
 	//ports.settings.bit.commandPromptEnabled ? println("prompt on") : println("prompt off");
-	if(ports.settings.bit.commandPromptEnabled) printCommandPrompt();
+	printCommandPrompt();
   return returnVal;
 }
+
+void Commander::tryUnlock(){
+	//try and unlock commander
+	if(bufferString.indexOf('U') == 0){
+		//check passphrase:
+		//println("Checking passphrase");
+		if(passPhrase == NULL || checkPass()) unlock();
+	}
+}
+
+bool Commander::checkPass(){
+	if(bufferString.indexOf(*passPhrase))	return true;
+	return false;
+}
+
 void Commander::handleComment(){
 	//if comments are to be printed then print out the buffer
 	if(ports.settings.bit.printComments){
@@ -590,7 +624,7 @@ int Commander::matchCommand(){
 	//First see if it starts with an int - if so then use the number function
 	//Check if it is a number or minus sign
 	if( isNumber(bufferString) ) return NUMERAL_COMMAND;
-	for(uint16_t n = 0; n < internalCommandItems; n++){
+	for(uint16_t n = 0; n < INTERNAL_COMMAND_ITEMS; n++){
 		//String intCmdLine = 
 		if(bufferString.startsWith( internalCommands[n] )){
 			//call the internal command function
@@ -628,27 +662,37 @@ bool Commander::checkAltCommand(uint16_t cmdIdx){
 int Commander::handleInternalCommand(uint16_t internalCommandIndex){
 	switch(internalCommandIndex){
 		case 0: //help
-			printCommandList();
+			unlock();
+			println(unlockMessage);
+			//Lock Command printCommandList();
 			break;
 		case 1: //?
+		  lock();
+			println(lockMessage);
+			//Unlock Command printCommanderVersion();
+			break;
+		case 2: //help
+			printCommandList();
+			break;
+		case 3: //?
 			printCommanderVersion();
 			break;
-		case 2: //CMDR echo 
+		case 4: //CMDR echo 
 			ports.settings.bit.echoTerminal = containsOn();
 			print(F("Echo Terminal "));
 			ports.settings.bit.echoTerminal ? println("on") : println("off");
 			break;
-		case 3: //CMDR echo alt 
+		case 5: //CMDR echo alt 
 			ports.settings.bit.echoToAlt = containsOn();
 			print(F("Echo Alt "));
 			ports.settings.bit.echoToAlt ? println("on") : println("off");
 			break;
-		case 4: //CMDR enable commander
+		case 6: //CMDR enable commander
 			ports.settings.bit.commandParserEnabled = containsOn();
 			print(F("Commander Enabled "));
 			ports.settings.bit.commandParserEnabled ? println("on") : println("off");
 			break;
-		case 5: //CMDR enable error messages
+		case 7: //CMDR enable error messages
 			ports.settings.bit.errorMessagesEnabled = containsOn();
 			print(F("Error Messages Enabled "));
 			ports.settings.bit.errorMessagesEnabled ? println("on") : println("off");
@@ -780,9 +824,9 @@ void Commander::printCommandList(){
 	
 	
   println(F("Internal Commands:"));
-	for(n = 0; n < internalCommandItems; n++){
+	for(n = 0; n < INTERNAL_COMMAND_ITEMS; n++){
 		write(' ');
-    if(n > 1){
+    if(n > 3){
 			print(internalCommands[n]);
 			println(F(" (on/off)"));
 		}
@@ -836,6 +880,11 @@ void Commander::printCommanderVersion(){
 	
 	print(F("Alt Port: "));
 	ports.altPort ? println("OK") : println("NULL");
+	
+	print(F("Locked: "));
+	ports.settings.bit.locked ? println("Yes") : println("No");
+	print(F("Lock: "));
+	ports.settings.bit.useHardLock ? println("Hard") : println("Soft");
 	
 
 }

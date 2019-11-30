@@ -49,6 +49,8 @@ typedef union {
 		uint16_t commandPromptEnabled:1;
 		uint16_t multiCommanderMode:1; //set to true when using multiple commander objects for multilayerd commands. Prevents multiple command prompts from appearing
 		uint16_t printComments:1; //set to true and lines prefixed with the comment char will print to the out and alt ports
+		uint16_t locked:1; //locks or unlocks commander
+		uint16_t useHardLock:1; //use hard or soft lock (0 or 1)
   } bit;        // used for bit  access  
   uint16_t reg;  //used for register access 
 } cmdSettings_t;
@@ -71,7 +73,7 @@ typedef struct portSettings_t{
 #define NUMERAL_COMMAND 										-2
 #define INTERNAL_COMMAND 										-1
 #define COMMENT_COMMAND 										-3
-#define INTERNAL_COMMAND_ITEMS 							6
+#define INTERNAL_COMMAND_ITEMS 							8
 #define COMMANDER_DEFAULT_REGISTER_SETTINGS 0x18
 #define COMMANDER_DEFAULT_STATE_SETTINGS 		0x0
 
@@ -79,7 +81,7 @@ typedef struct portSettings_t{
 
 	#define printAlt 		ports.altPort->print
 	#define printAltln 	ports.altPort->println
-	#define writeAlt 	ports.altPort->write
+	#define writeAlt 	  ports.altPort->write
 
 
 const uint16_t SBUFFER_DEFAULT = 128;
@@ -89,6 +91,8 @@ const String onString = "on";
 const String offString = "off";
 const String okString = "OK";
 const String nullString = "NULL";
+const String lockMessage = "Locked";
+const String unlockMessage = "Unlocked";
 
 //Commander Class ===========================================================================================
 class Commander{
@@ -101,6 +105,13 @@ public:
 	bool   update();
 	bool   updatePending();
 	bool 	 printCommands() {printCommandList();}
+	void	 setPassPhrase(String& phrase) {passPhrase = &phrase;}
+	void   printPassPhrase() {print(*passPhrase);}
+	void 	 lock() {ports.settings.bit.locked = true;}
+	void 	 unlock() {ports.settings.bit.locked = false;}
+	void 	 setHardLock(bool hlState) {ports.settings.bit.useHardLock = hlState;}
+	bool	 isLocked() {return ports.settings.bit.locked;}
+	bool	 hardLockEnabled() {return ports.settings.bit.useHardLock;}
 	bool   feed(Commander& Cmdr);
 	bool   hasPayload();
 	String getPayload();
@@ -318,6 +329,7 @@ public:
 	//#if defined (CMD_ENABLE_FORMATTING)
 	String prefixString = "";
 	String postfixString = "";
+	
 	//#endif
 	
 private:
@@ -336,6 +348,8 @@ private:
 	void computeLengths();
 	uint8_t getLength(uint8_t indx);
 	bool handleCommand();
+	void tryUnlock();
+  bool checkPass();
 	void handleComment();
 	bool processBuffer(int dataByte);
 	void writeToBuffer(int dataByte);
@@ -385,8 +399,11 @@ private:
   
   uint8_t endOfLine = '\n';
 
-	const uint16_t internalCommandItems = INTERNAL_COMMAND_ITEMS;
+	//const uint16_t internalCommandItems = INTERNAL_COMMAND_ITEMS;
 	const char* internalCommands[INTERNAL_COMMAND_ITEMS];
+	
+	
+	String *passPhrase = NULL;
 };
 	
 #endif //Commander_h
