@@ -36,12 +36,13 @@ __SimpleMultiLayer:__ Shows how three command lists can be used with one Command
 
 __FullMultiLayer:__ This example behaves in an almost identical way to SimpleMultiLayer but uses three Commander objects. Navigating between different levels is handled by passing control from one Commander object to another rather than loading different command lists into the same object.
 
+__PrefabFileExplorer:__ Demonstrates the use of a prefabricated command structure (in PrefabFileNavigator.h) to create a sub menu for navigating and manipulating files on an SD card. The prefab allows files to be created and written to but a suitable terminal application needs to be used - The terminal application needs to be able to send the ASCII value 4 in order to terminate the file download and return control to the command system. The Arduino serial terminal will not allow this so we do not recommend using it with the 'write' command.
+
 __NumberCommand:__ (To Be Done!) Demonstrates a special class of command for handling numbers. It is designed to allow data files to be uploaded and unpacked into an array.
 
 __TelnetCommand:__ (To Be Done) Interface a Telnet session to Commander so that commands can be accessed remotely via WiFi.
 
 __htmlCommand:__ (To Be Done) Feed HTML page requests to Commander and generate HTML formatted responses in reply.
-
 
 ### How it works (roughly speaking)
 

@@ -31,6 +31,7 @@ typedef union {
 		uint16_t postfixMessage:1; //flag to indicate that any replies should be appended with the postfix string
 		uint16_t newlinePrinted:1; //flag to indicate that a newline has been sent - used with the prefixMessage flag to ensure prefix string appears at the start of every line
 		uint16_t autoFormat:1; //flag to indicate that all replies should be formatted with pre and postfix text
+		uint16_t streamOn:1; //indicates that a data stream is incoming - all printing characters get routed somewhere until the EOFChar is found
 		//uint16_t altCommandListMatch:1; //flag to indicate that a match was found in the alt command list
   } bit;        // used for bit  access  
   uint16_t reg;  //used for register access 
@@ -41,24 +42,25 @@ typedef union {
 
 typedef union {
   struct {
-    uint16_t echoTerminal:1; 
-    uint16_t echoToAlt:1;  
-    uint16_t copyResponseToAlt:1; 
-		uint16_t commandParserEnabled:1;
-		uint16_t errorMessagesEnabled:1;
-		uint16_t commandPromptEnabled:1;
-		uint16_t multiCommanderMode:1; //set to true when using multiple commander objects for multilayerd commands. Prevents multiple command prompts from appearing
-		uint16_t printComments:1; //set to true and lines prefixed with the comment char will print to the out and alt ports
-		uint16_t locked:1; //locks or unlocks commander
-		uint16_t useHardLock:1; //use hard or soft lock (0 or 1)
+    uint16_t echoTerminal:1; 					//0
+    uint16_t echoToAlt:1;  						//1
+    uint16_t copyResponseToAlt:1; 		//2
+		uint16_t commandParserEnabled:1;	//3
+		uint16_t errorMessagesEnabled:1;	//4
+		uint16_t commandPromptEnabled:1;	//5
+		uint16_t multiCommanderMode:1; 		//6 set to true when using multiple commander objects for multilayerd commands. Prevents multiple command prompts from appearing
+		uint16_t printComments:1; 				//7 set to true and lines prefixed with the comment char will print to the out and alt ports
+		uint16_t locked:1; 								//8 locks or unlocks commander
+		uint16_t useHardLock:1; 					//9 use hard or soft lock (0 or 1)
+		uint16_t stripCR:1; 							//10 Strip carriage returns from the buffer
   } bit;        // used for bit  access  
   uint16_t reg;  //used for register access 
 } cmdSettings_t;
-
+//default is 0b0000010000011000
 //const String CommanderVersionNumber = "1.0.1";
 const uint8_t majorVersion = 1;
-const uint8_t minorVersion = 0;
-const uint8_t subVersion   = 2;
+const uint8_t minorVersion = 2;
+const uint8_t subVersion   = 0;
 
 typedef struct portSettings_t{
 	Stream *inPort = NULL;
@@ -70,11 +72,16 @@ typedef struct portSettings_t{
 } portSettings_t;
 
 #define UNKNOWN_COMMAND 										32767
-#define NUMERAL_COMMAND 										-2
+#define CUSTOM_COMMAND 										  -2
 #define INTERNAL_COMMAND 										-1
 #define COMMENT_COMMAND 										-3
 #define INTERNAL_COMMAND_ITEMS 							8
-#define COMMANDER_DEFAULT_REGISTER_SETTINGS 0x18
+
+#define COMMANDER_DEFAULT_REGISTER_SETTINGS 0x418
+//Default settings:
+//commandParserEnabled = true
+//errorMessagesEnabled = true
+//stripCR = true
 #define COMMANDER_DEFAULT_STATE_SETTINGS 		0x0
 
 
@@ -93,6 +100,8 @@ const String okString = "OK";
 const String nullString = "NULL";
 const String lockMessage = "Locked";
 const String unlockMessage = "Unlocked";
+
+const char EOFChar = 4; //end of file character for terminal
 
 //Commander Class ===========================================================================================
 class Commander{
@@ -119,6 +128,10 @@ public:
 	bool   feedString(String newString);
 	void   loadString(String newString);
 	bool 	 endLine();
+	void 	 startStream() {commandState.bit.streamOn = true;} //set the streaming function ON
+	void 	 stopStream() {commandState.bit.streamOn = false;} //set the streaming function OFF
+	void 	 setStream(bool streamState) {commandState.bit.streamOn = streamState;}
+	bool 	 isStreaming() {return commandState.bit.streamOn;}
 	void   transfer(Commander& Cmdr);
 	bool   transferTo(const commandList_t *commands, uint32_t size, String newName);
 	void   transferBack(const commandList_t *commands, uint32_t size, String newName);
@@ -131,8 +144,8 @@ public:
 	
 	void   attachInputPort(Stream *iPort);
 	Stream* getInputPort()  												{return ports.inPort;}
-	void deleteAltPort() {ports.altPort = NULL;}
-	void   attachNumeralCommand(cmdHandler handler) {numeralHandler = handler;}
+	void 	 deleteAltPort() {ports.altPort = NULL;}
+	void   attachSpecialHandler(cmdHandler handler) {customHandler = handler;}
 	void   setBuffer(uint16_t buffSize);
 	void   attachCommands(const commandList_t *commands, uint32_t size);
 	
@@ -296,7 +309,7 @@ public:
 	
 	void enableCommands(bool sState)  		{ports.settings.bit.commandParserEnabled = true;}
 	void disableCommands(bool sState)  		{ports.settings.bit.commandParserEnabled = false;}
-	
+	void stripCR(bool sState) 						{ports.settings.bit.stripCR = sState;}
 	void multiCommander(bool enable) 			{ports.settings.bit.multiCommanderMode = enable;}
 	
 	void enableErrors()  									{ports.settings.bit.errorMessagesEnabled = true;}
@@ -333,6 +346,8 @@ public:
 	//#endif
 	
 private:
+	void echoPorts(int portByte);
+	void bridgePorts();
 	//#if defined (CMD_ENABLE_FORMATTING)
 		void doPrefix(){ //handle prefixes for command replies
 			if(commandState.bit.prefixMessage && commandState.bit.newlinePrinted) ports.outPort->print(prefixString); 
@@ -358,7 +373,7 @@ private:
 	bool checkCommand(uint16_t cmdIdx);
 	//bool checkAltCommand(uint16_t cmdIdx);
 	int  handleInternalCommand(uint16_t internalCommandIndex);
-	bool  handleIndexCommand();
+	bool  handleCustomCommand();
 	bool tryGet();
 	bool nextSpace();
 	bool nextDelimiter();
@@ -369,7 +384,7 @@ private:
 	bool isCommandChar(char dataByte);
 	bool isCommandStart(char dataByte);
 	bool isEndOfLine(char dataByte);
-	void printWhiteSpace(uint8_t spaces);
+	String getWhiteSpace(uint8_t spaces);
 	
 	const commandList_t* commandList;
 	//const commandList_t* altCommandList;
@@ -380,7 +395,7 @@ private:
 	uint16_t commandListEntries = 0;
 	//uint16_t altCommandListEntries = 0;
 	
-  cmdHandler numeralHandler;
+  cmdHandler customHandler;
 	cmdState_t commandState;
 	portSettings_t ports;
 	

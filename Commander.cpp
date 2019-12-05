@@ -54,6 +54,46 @@ void	Commander::begin(Stream *sPort, Stream *oPort, const commandList_t *command
 //==============================================================================================================
 
 bool Commander::update(){
+	if(!ports.inPort) return 0; //don't bother if there is no stream attached
+	//Check if streamOn is true. If it is then all incoming chars get routed somewhere and no command processing happens (for sending files ...)
+	if(commandState.bit.streamOn){
+		
+		bufferString = "";//clear the buffer so we can fill it with any new chars
+		bytesWritten = 0;
+		commandState.bit.bufferFull = false;
+		
+		while(ports.inPort->available()){
+			int inByte = ports.inPort->read();
+			if(inByte == EOFChar){
+				println("EOF Found, tidying up");
+				commandState.bit.streamOn = false;
+				//get rid of any newlines or CRs in the stream
+				while(ports.inPort->peek() == '\n' || ports.inPort->peek() == '\r') ports.inPort->read();
+				//call the handler again so it can clean up and close anything that needs closing
+				commandState.bit.commandHandled = handleCustomCommand();
+				resetBuffer();
+				printCommandPrompt();
+				return (bool)ports.inPort->available(); //return true if any bytes left to read
+			}
+			//write incoming data to the buffer
+      writeToBuffer(inByte);
+			//echo to ports if configured
+			echoPorts(inByte);
+			//call the handler if you fill the buffer, then return so everything is reset
+      if(bytesWritten == bufferSize-1 || !ports.inPort->available()) {
+				
+				println("Buffer ready, calling handler");
+				commandState.bit.commandHandled = handleCustomCommand();
+				
+				println("Clearing buffer");
+				bufferString = "";//clear the buffer so we can fill it with any new chars
+				bytesWritten = 0;
+				resetBuffer();
+				return (bool)ports.inPort->available(); //return true if any bytes left to read
+			}
+    }
+		return (bool)ports.inPort->available(); //return true if any bytes left to read
+	}
 	//returns true if any bytes left to read
 	if(commandState.bit.isCommandPending){
 		//there is a command still in the buffer, process it now
@@ -62,44 +102,39 @@ bool Commander::update(){
 		if(ports.inPort) return (bool)ports.inPort->available(); //return true if any bytes left to read
 		return 0;
 	}
-	//if(	!commandState.bit.commanderStarted && ports.settings.bit.commandPromptEnabled) {
-		//printCommandPrompt();
-		//commandState.bit.commanderStarted = true;
-	//}
-	commandState.bit.commandHandled = false;
-	if(ports.settings.bit.commandParserEnabled && ports.inPort){
-		while(ports.inPort->available()){
-			//ports.inPort->println("Reading Data");
-			int inByte = ports.inPort->read();
-			if(ports.settings.bit.echoTerminal && !ports.settings.bit.locked) ports.outPort->write(inByte);
-	
-			if(ports.settings.bit.echoToAlt && ports.altPort && !ports.settings.bit.locked) {
-				ports.altPort->write(inByte);
-			}
 
+	commandState.bit.commandHandled = false;
+	if(ports.settings.bit.commandParserEnabled){
+		while(ports.inPort->available()){
+			int inByte = ports.inPort->read();
+			echoPorts(inByte);
       if(processBuffer(inByte)) break; //break out of here - an end of line was found so unpack and handle the command 
     }
-		
-
     //copy any pending characters back from the alt ports.inPort
 		if(ports.settings.bit.echoToAlt && ports.altPort) while(ports.altPort->available()) { ports.outPort->write(ports.altPort->read()); }
 
 		//If a newline was detected, try and handle the command
     if(commandState.bit.newLine == true) commandState.bit.commandHandled = handleCommand(); //returns true if data was unpacked
-		
-		
 	}
-
-	else if(!ports.settings.bit.commandParserEnabled && ports.settings.bit.echoToAlt && ports.inPort && ports.altPort){
-			//pass data between ports
-			while(ports.altPort->available()) ports.outPort->write(ports.altPort->read());
-			while(ports.inPort->available()) ports.altPort->write(ports.inPort->read());
-	}
-
+	else bridgePorts();
 	if(ports.inPort) return (bool)ports.inPort->available(); //return true if any bytes left to read
   return 0;
 }
 
+//Echo incoming to out and alt ports
+void Commander::echoPorts(int portByte){
+	if(ports.settings.bit.echoTerminal && !ports.settings.bit.locked) ports.outPort->write(portByte);
+	if(ports.settings.bit.echoToAlt && ports.altPort && !ports.settings.bit.locked) ports.altPort->write(portByte);
+}
+
+//copy data between ports
+void Commander::bridgePorts(){
+	if(!ports.settings.bit.commandParserEnabled && ports.settings.bit.echoToAlt && ports.altPort){
+			//pass data between ports
+			while(ports.altPort->available()) ports.outPort->write(ports.altPort->read());
+			while(ports.inPort->available()) ports.altPort->write(ports.inPort->read());
+	}
+}
 //==============================================================================================================
 bool   Commander::updatePending(){
 	if(commandState.bit.isCommandPending){
@@ -479,8 +514,8 @@ bool Commander::handleCommand(){
 		unknownCommand();
     returnVal = 0; //unknown command function
   }
-	else if(commandVal == NUMERAL_COMMAND && ports.settings.bit.locked == false){
-		  returnVal = handleIndexCommand();
+	else if(commandVal == CUSTOM_COMMAND && ports.settings.bit.locked == false){
+		  returnVal = handleCustomCommand();
 			if(returnVal == 1) unknownCommand();
 	}
 	
@@ -546,6 +581,7 @@ bool  Commander::processBuffer(int dataByte){
       if(commandState.bit.bufferFull) resetBuffer();//dump the buffer
       if(commandState.bit.newLine == true) {
         commandState.bit.bufferState = BUFFER_PACKET_RECEIVED;
+				//if(bufferString.charAt(bytesWritten - 2) == '\r') bufferString.charAt(bytesWritten - 2) = '\n';
 				return true; //return true because we have a newline
         //DEBUG.println("Newline Detected");
       } //unpack the data
@@ -566,7 +602,8 @@ void Commander::writeToBuffer(int dataByte){
     return;
   }
   //buf[bytesWritten] = dataByte;
-  bufferString += (char)dataByte;
+  if(ports.settings.bit.stripCR && dataByte != '\r') bufferString += (char)dataByte; //ingore CR
+	else bufferString += (char)dataByte;
   if(dataByte == endOfLine) commandState.bit.newLine = true;
   bytesWritten++;
 }
@@ -623,7 +660,7 @@ int Commander::matchCommand(){
 	//Now check any default commands - these can be overridden if found in the users command list
 	//First see if it starts with an int - if so then use the number function
 	//Check if it is a number or minus sign
-	if( isNumber(bufferString) ) return NUMERAL_COMMAND;
+	if( isNumber(bufferString) ) return CUSTOM_COMMAND;
 	for(uint16_t n = 0; n < INTERNAL_COMMAND_ITEMS; n++){
 		//String intCmdLine = 
 		if(bufferString.startsWith( internalCommands[n] )){
@@ -702,11 +739,11 @@ int Commander::handleInternalCommand(uint16_t internalCommandIndex){
 }
 //==============================================================================================================
 
-bool  Commander::handleIndexCommand(){
+bool  Commander::handleCustomCommand(){
 	//if the function pointer is NULL then return
 	//If not then call the function
-	if(numeralHandler == NULL) return 1;
-	return numeralHandler(*this);
+	if(customHandler == NULL) return 1;
+	return customHandler(*this);
 }
 //==============================================================================================================
 void Commander::unknownCommand(){
@@ -788,55 +825,66 @@ void Commander::printCommandList(){
 	  //Prints all the commands
   uint8_t n = 0;
   //int length1 = 0;
-  print(commanderName);
-  println(F(" User Commands:"));
 	String cmdLine = " ";
+	cmdLine.concat(commanderName);
+	cmdLine.concat(F(" User Commands:"));
+  //print(commanderName);
+  //println(F(" User Commands:"));
+	//String cmdLine = " ";
+	println(cmdLine);
   for(n = 0; n < commandListEntries; n++){
 		
-		cmdLine += commandList[n].commandString;
-		cmdLine += ' ';
-		write(' ');
-    print(commandList[n].commandString);
-		write(' ');
+		cmdLine = '\t';
+		cmdLine.concat(commandList[n].commandString);
+		//cmdLine += ' ';
+		cmdLine.concat(getWhiteSpace(longestCommand - commandLengths[n]));
+		cmdLine.concat("| ");
+		cmdLine.concat(commandList[n].manualString);
+    //write('|');
+		//write(' ');
+    //println(commandList[n].manualString);
+		//cmdLine += '\t';
+		//write('\t');
+    //print(commandList[n].commandString);
+		//write(' ');
     //length1 = commands[n].commandString.length();
     //for(int i = 0; i < (32-commandList[n].commandString.length()); i++){
       //add whitespace
 			//uint8_t whiteSpaces = longestCommand - commandLengths[n];
-			printWhiteSpace(longestCommand - commandLengths[n]);
+		//print(getWhiteSpace(longestCommand - commandLengths[n]));
+			//printWhiteSpace(longestCommand - commandLengths[n]);
 			//for(int ws = 0; ws < whiteSpaces; ws++)  write(' '); //Print blank spaces to format the line - CONVERT THIS TO A FUNCTION BECAUSE IT IS USED SEVERAL TIMES
     //}
-    write('|');
-		write(' ');
-    println(commandList[n].manualString);
-		
-		
+		println(cmdLine);
   }
 	//NOW print any alt commands altCommandListPrintEnable
-	if(numeralHandler != NULL){
-		print(" * ");
-		
-		printWhiteSpace(longestCommand-1);
+	if(customHandler != NULL){
+		cmdLine = "\t*";
+		cmdLine.concat(getWhiteSpace(longestCommand-1));
+		//printWhiteSpace(longestCommand-1);
 		//for(int ws = 0; ws < longestCommand-1; ws++)  write(' ');
-    write('|');
-		write(' ');
-		println(F("Number Command"));
+    cmdLine.concat('|');
+		cmdLine.concat(' ');
+		
+		cmdLine.concat( F("Custom Command"));
+		println(cmdLine);
 	}
 	
 	
-  println(F("Internal Commands:"));
+  println(F(" Internal Commands:"));
 	for(n = 0; n < INTERNAL_COMMAND_ITEMS; n++){
-		write(' ');
+		write('\t');
     if(n > 3){
 			print(internalCommands[n]);
 			println(F(" (on/off)"));
 		}
 		else println(internalCommands[n]);
   }
-	print(F("Reload character: "));
+	print(F(" Reload character: "));
 	println(String(reloadCommandChar));
 	
 	
-	print(F("Comment character: "));
+	print(F(" Comment character: "));
 	println(String(commentChar));
 	
   //return 0;
@@ -844,10 +892,13 @@ void Commander::printCommandList(){
 
 //==============================================================================================================
 
-void Commander::printWhiteSpace(uint8_t spaces){
+String Commander::getWhiteSpace(uint8_t spaces){
+	String wSpace = " ";
 	for(uint8_t n = 0; n < spaces; n++){
-		write(' ');
+		wSpace.concat(' ');
+		//write(' ');
 	}
+	return wSpace;
 }
 //==============================================================================================================
 
