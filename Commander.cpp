@@ -828,9 +828,6 @@ void Commander::printCommandList(){
 	String cmdLine = " ";
 	cmdLine.concat(commanderName);
 	cmdLine.concat(F(" User Commands:"));
-  //print(commanderName);
-  //println(F(" User Commands:"));
-	//String cmdLine = " ";
 	println(cmdLine);
   for(n = 0; n < commandListEntries; n++){
 		
@@ -840,37 +837,8 @@ void Commander::printCommandList(){
 		cmdLine.concat(getWhiteSpace(longestCommand - commandLengths[n]));
 		cmdLine.concat("| ");
 		cmdLine.concat(commandList[n].manualString);
-    //write('|');
-		//write(' ');
-    //println(commandList[n].manualString);
-		//cmdLine += '\t';
-		//write('\t');
-    //print(commandList[n].commandString);
-		//write(' ');
-    //length1 = commands[n].commandString.length();
-    //for(int i = 0; i < (32-commandList[n].commandString.length()); i++){
-      //add whitespace
-			//uint8_t whiteSpaces = longestCommand - commandLengths[n];
-		//print(getWhiteSpace(longestCommand - commandLengths[n]));
-			//printWhiteSpace(longestCommand - commandLengths[n]);
-			//for(int ws = 0; ws < whiteSpaces; ws++)  write(' '); //Print blank spaces to format the line - CONVERT THIS TO A FUNCTION BECAUSE IT IS USED SEVERAL TIMES
-    //}
 		println(cmdLine);
   }
-	//NOW print any alt commands altCommandListPrintEnable
-	if(customHandler != NULL){
-		cmdLine = "\t*";
-		cmdLine.concat(getWhiteSpace(longestCommand-1));
-		//printWhiteSpace(longestCommand-1);
-		//for(int ws = 0; ws < longestCommand-1; ws++)  write(' ');
-    cmdLine.concat('|');
-		cmdLine.concat(' ');
-		
-		cmdLine.concat( F("Custom Command"));
-		println(cmdLine);
-	}
-	
-	
   println(F(" Internal Commands:"));
 	for(n = 0; n < INTERNAL_COMMAND_ITEMS; n++){
 		write('\t');
@@ -936,7 +904,6 @@ void Commander::printCommanderVersion(){
 	ports.settings.bit.locked ? println("Yes") : println("No");
 	print(F("Lock: "));
 	ports.settings.bit.useHardLock ? println("Hard") : println("Soft");
-	
-
+	if(customHandler != NULL)	println( F("Custom Cmd OK"));
 }
 //==============================================================================================================
