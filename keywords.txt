@@ -1,0 +1,113 @@
+########################################################
+#	Syntax	Coloring	Map	for	Commander	Library	#
+########################################################
+#	Class
+###################################################################
+
+Commander	KEYWORD1
+
+###################################################################
+#	Methods	and	Functions
+###################################################################
+
+begin	KEYWORD2
+update	KEYWORD2
+updatePending	KEYWORD2
+printCommands	KEYWORD2
+setPassPhrase	KEYWORD2
+printPassPhrase	KEYWORD2
+lock	KEYWORD2
+unlock	KEYWORD2
+setHardLock	KEYWORD2
+isLocked	KEYWORD2
+hardLockEnabled	KEYWORD2
+feed	KEYWORD2
+hasPayload	KEYWORD2
+getPayload	KEYWORD2
+getPayloadString	KEYWORD2
+feedString	KEYWORD2
+loadString	KEYWORD2
+endLine	KEYWORD2
+startStream	KEYWORD2
+stopStream	KEYWORD2
+setStream	KEYWORD2
+isStreaming	KEYWORD2
+transfer	KEYWORD2
+transferTo	KEYWORD2
+transferBack	KEYWORD2
+attachOutputPort	KEYWORD2
+getOutputPort	KEYWORD2
+attachAltPort	KEYWORD2
+getAltPort	KEYWORD2
+attachInputPort	KEYWORD2
+getInputPort	KEYWORD2
+deleteAltPort	KEYWORD2
+attachSpecialHandler	KEYWORD2
+setBuffer	KEYWORD2
+attachCommands	KEYWORD2
+quickSetHelp	KEYWORD2
+quickSet	KEYWORD2
+quickGet	KEYWORD2
+print	KEYWORD2
+println	KEYWORD2
+write	KEYWORD2
+isNewline	KEYWORD2
+setPrefix	KEYWORD2
+startPrefix	KEYWORD2
+setPostfix	KEYWORD2
+startPostfix	KEYWORD2
+startFormatting	KEYWORD2
+setAutoFormat	KEYWORD2
+getAutoFormat	KEYWORD2
+printCommandPrompt	KEYWORD2
+containsTrue	KEYWORD2
+containsOn	KEYWORD2
+setCommentChar	KEYWORD2
+setReloadChar	KEYWORD2
+setEndOfLineChar	KEYWORD2
+echo	KEYWORD2
+printComments	KEYWORD2
+echoToAlt	KEYWORD2
+copyRepyAlt	KEYWORD2
+enableCommands	KEYWORD2
+disableCommands	KEYWORD2
+stripCR	KEYWORD2
+multiCommander	KEYWORD2
+enableErrors	KEYWORD2
+disableErrors	KEYWORD2
+enablePrompt	KEYWORD2
+disablePrompt	KEYWORD2
+enableHelp	KEYWORD2
+disableHelp	KEYWORD2
+getSettings	KEYWORD2
+setSettings	KEYWORD2
+getPortSettings	KEYWORD2
+setPortSettings	KEYWORD2
+getInt	KEYWORD2
+getFloat	KEYWORD2
+getDouble	KEYWORD2
+printCommandList	KEYWORD2
+printCommanderVersion	KEYWORD2
+unknownCommand	KEYWORD2
+printAlt	KEYWORD2
+printAltln	KEYWORD2
+writeAlt	KEYWORD2
+cmdHandler	KEYWORD2
+
+###################################################################
+#	Variables
+###################################################################
+
+bufferString	KEYWORD1
+commanderName	KEYWORD1
+promptCharacter	KEYWORD1
+eocCharacter	KEYWORD1
+prefixString	KEYWORD1
+postfixString	KEYWORD1
+portSettings_t	KEYWORD3
+commandList_t	KEYWORD3
+
+###################################################################
+#	Constants
+###################################################################
+

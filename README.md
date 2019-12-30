@@ -46,7 +46,7 @@ __htmlCommand:__ (To Be Done) Feed HTML page requests to Commander and generate 
 
 ### How it works (roughly speaking)
 
-The command list is an array of structures and each element contains the command string, a function pointer, and a help text string. These are all defined before the code is compiles, rather than being assigned dynamically when your code starts in order to reduce the amount of dynamic memory allocation and ensure the sketch starts quickly, particularly if using very large command sets. When you load a command list into a Commander object is scans the list and records the lengths of all the commands.
+The command list is an array of structures and each element contains the command string, a function pointer, and a help text string. These are all defined before the code is compiles, rather than being assigned dynamically when your code starts in order to reduce the amount of dynamic memory allocation and ensure the sketch starts quickly, particularly if using very large command sets. When you load a command list into a Commander object it scans the list and records the lengths of all the commands - this is used as part of the command matching algorithm.
 
 When Commander reads a Stream or is fed a String it places it in a buffer and tries to match the start of the string to a command (unless it was rejected as a comment or the reload character was detected). If a command match is found it invokes the users command handler function and waits for it to finish. The buffer is a String object and is public so it can be read and manipulated by the users code from their handler function, and all the Arduino String methods can be used with it.
 
@@ -56,7 +56,7 @@ Because Commander checks the user commands first you can override any of the bui
 
 There are a full set of Stream print and write functions that can be used, and they ensure that printed responses will be routed to the Commander objects specified output port, and to the aux port if enabled, and they ensure that any pre or postfix formatting is applied.
 
-The command match system relies on each comment ending with either a newline or a space, or a special user defined character. If the command doesn't have any arguments it will normally end in a newline but if it has any arguments then they must be separated by a space, or the user defined ‘eocCharacter’ (which is ’=’ by default) - The eocCharacter allows you use commands like this: 'myvariable=3' where myvariable is the command and 3 is the argument.
+The command match system relies on each comment ending with either a newline or a space, or a special user defined character. If the command doesn't have any arguments it will normally end in a newline but if it has any arguments then they must be separated by a space, or the user defined ‘eocCharacter’ (which is ’=’ by default) - The eocCharacter allows you use key=value properties commands like this: 'myvariable=3' where myvariable is the command and 3 is the argument.
 
 ### Basic code structure
 
@@ -112,6 +112,9 @@ To do this you need to _forward declare_ the command list array and the _numOfMa
 extern const uint16_t numOfMasterCmds;
 extern const commandList_t masterCommands[];
 ```
+
+This forward declaration tells the compiler that these variables exist, but have been initialised (given a starting value) somewhere else in the code.
+
 __Command Handler Functions__
 
 When you write your command handler you can access the Commanders methods and the command buffer using the Cmdr reference.
@@ -167,14 +170,23 @@ bool getIntsHandler(Commander &Cmdr){
 In the example we are using the command _set ints_ which has been defined in the command array. Sending the command string 'set ints 12 34 56 78' will produce the following output on the serial port:
 
 > unpacked 12
+
 > unpacked 34
+
 > unpacked 56
+
 > unpacked 78
+
 > Array contents after processing:
+
 > 0 = 12
+
 > 1 = 34
+
 > 2 = 56
+
 > 3 = 78
+
 
 We can use commas instead of spaces in the command string so the command 'set ints 12,34,56,78' will produce exactly the same result.
 

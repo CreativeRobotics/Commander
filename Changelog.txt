@@ -1,0 +1,12 @@
+Commander changelog
+Starting at 1.2.3
+
+Commander 1.3.0:
+Added help system enable bit so help and query (?) commands can be disabled
+Added keywords.txt for syntax highlighting.
+Added includes=Commander.h and depends= to properties file
+Minor edits to readme
+Changes to how help is formatted
+
+Commander 1.2.3:
+Added enable bit for help system and query command. The help system an now be disabled if required.

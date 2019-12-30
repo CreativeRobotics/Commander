@@ -709,10 +709,10 @@ int Commander::handleInternalCommand(uint16_t internalCommandIndex){
 			//Unlock Command printCommanderVersion();
 			break;
 		case 2: //help
-			printCommandList();
+			if( ports.settings.bit.helpEnabled ) printCommandList();
 			break;
 		case 3: //?
-			printCommanderVersion();
+			if( ports.settings.bit.helpEnabled ) printCommanderVersion();
 			break;
 		case 4: //CMDR echo 
 			ports.settings.bit.echoTerminal = containsOn();
@@ -872,38 +872,38 @@ String Commander::getWhiteSpace(uint8_t spaces){
 
 void Commander::printCommanderVersion(){
 	
-	print(F("Commander version "));
+	print(F("\tCommander version "));
 	print(majorVersion);
 	print(".");
 	print(minorVersion);
 	print(".");
 	println(subVersion);
 	
-	print(F("Echo terminal: "));
+	print(F("\tEcho terminal: "));
 	ports.settings.bit.echoTerminal ? println("On") : println("Off");
 	
-	print(F("Echo to Alt: "));
+	print(F("\tEcho to Alt: "));
 	ports.settings.bit.echoToAlt ? println("On") : println("Off");
 	
-	print(F("Auto Format: "));
+	print(F("\tAuto Format: "));
 	commandState.bit.autoFormat ? println("On") : println("Off");
 	
-	print(F("Error messages: "));
+	print(F("\tError messages: "));
 	ports.settings.bit.errorMessagesEnabled ? println("On") : println("Off");
 	
-	print(F("In Port: "));
+	print(F("\tIn Port: "));
 	ports.inPort ? println("OK") : println("NULL");
 	
-	print(F("Out Port: "));
+	print(F("\tOut Port: "));
 	ports.outPort ? println("OK") : println("NULL");
 	
-	print(F("Alt Port: "));
+	print(F("\tAlt Port: "));
 	ports.altPort ? println("OK") : println("NULL");
 	
-	print(F("Locked: "));
+	print(F("\tLocked: "));
 	ports.settings.bit.locked ? println("Yes") : println("No");
-	print(F("Lock: "));
+	print(F("\tLock: "));
 	ports.settings.bit.useHardLock ? println("Hard") : println("Soft");
-	if(customHandler != NULL)	println( F("Custom Cmd OK"));
+	if(customHandler != NULL)	println( F("\tCustom Cmd OK"));
 }
 //==============================================================================================================

@@ -48,19 +48,20 @@ typedef union {
 		uint16_t commandParserEnabled:1;	//3
 		uint16_t errorMessagesEnabled:1;	//4
 		uint16_t commandPromptEnabled:1;	//5
-		uint16_t multiCommanderMode:1; 		//6 set to true when using multiple commander objects for multilayerd commands. Prevents multiple command prompts from appearing
-		uint16_t printComments:1; 				//7 set to true and lines prefixed with the comment char will print to the out and alt ports
-		uint16_t locked:1; 								//8 locks or unlocks commander
-		uint16_t useHardLock:1; 					//9 use hard or soft lock (0 or 1)
-		uint16_t stripCR:1; 							//10 Strip carriage returns from the buffer
+		uint16_t helpEnabled:1; 					//6 enable the help system
+		uint16_t multiCommanderMode:1; 		//7 set to true when using multiple commander objects for multilayerd commands. Prevents multiple command prompts from appearing
+		uint16_t printComments:1; 				//8 set to true and lines prefixed with the comment char will print to the out and alt ports
+		uint16_t locked:1; 								//9 locks or unlocks commander
+		uint16_t useHardLock:1; 					//10 use hard or soft lock (0 or 1)
+		uint16_t stripCR:1; 							//11 Strip carriage returns from the buffer
   } bit;        // used for bit  access  
   uint16_t reg;  //used for register access 
 } cmdSettings_t;
-//default is 0b0000010000011000
+//default is 0b00000100001011000
 //const String CommanderVersionNumber = "1.0.1";
 const uint8_t majorVersion = 1;
-const uint8_t minorVersion = 2;
-const uint8_t subVersion   = 1;
+const uint8_t minorVersion = 3;
+const uint8_t subVersion   = 0;
 
 typedef struct portSettings_t{
 	Stream *inPort = NULL;
@@ -77,7 +78,7 @@ typedef struct portSettings_t{
 #define COMMENT_COMMAND 										-3
 #define INTERNAL_COMMAND_ITEMS 							8
 
-#define COMMANDER_DEFAULT_REGISTER_SETTINGS 0x418
+#define COMMANDER_DEFAULT_REGISTER_SETTINGS 0x858
 //Default settings:
 //commandParserEnabled = true
 //errorMessagesEnabled = true
@@ -317,6 +318,9 @@ public:
 	
 	void enablePrompt()  									{ports.settings.bit.commandPromptEnabled = true;}
 	void disablePrompt()  								{ports.settings.bit.commandPromptEnabled = false;}
+	
+	void enableHelp()  									  {ports.settings.bit.helpEnabled = true;}
+	void disableHelp()  								  {ports.settings.bit.helpEnabled = false;}
 	
 	cmdSettings_t  getSettings() 											{return ports.settings;}
 	void  				 setSettings(cmdSettings_t newSet)  {ports.settings = newSet;}
