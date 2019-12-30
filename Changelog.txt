@@ -1,8 +1,12 @@
 Commander changelog
 Starting at 1.2.3
 
+Commander 1.3.1:
+Restructured directories so everything is in src
+Prefabs now have their own directory and can be arranged into sub categories
+
 Commander 1.3.0:
-Added help system enable bit so help and query (?) commands can be disabled
+Fixed adding help system enable bit so help and query (?) commands can be disabled (this had not been added to the repo in 1.2.3)
 Added keywords.txt for syntax highlighting.
 Added includes=Commander.h and depends= to properties file
 Minor edits to readme

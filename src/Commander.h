@@ -61,7 +61,7 @@ typedef union {
 //const String CommanderVersionNumber = "1.0.1";
 const uint8_t majorVersion = 1;
 const uint8_t minorVersion = 3;
-const uint8_t subVersion   = 0;
+const uint8_t subVersion   = 1;
 
 typedef struct portSettings_t{
 	Stream *inPort = NULL;
