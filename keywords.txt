@@ -12,15 +12,14 @@ Commander	KEYWORD1
 
 begin	KEYWORD2
 update	KEYWORD2
-updatePending	KEYWORD2
 printCommands	KEYWORD2
 setPassPhrase	KEYWORD2
 printPassPhrase	KEYWORD2
 lock	KEYWORD2
 unlock	KEYWORD2
-setHardLock	KEYWORD2
+setLockType	KEYWORD2
+getLockType	KEYWORD2
 isLocked	KEYWORD2
-hardLockEnabled	KEYWORD2
 feed	KEYWORD2
 hasPayload	KEYWORD2
 getPayload	KEYWORD2
@@ -51,7 +50,6 @@ quickGet	KEYWORD2
 print	KEYWORD2
 println	KEYWORD2
 write	KEYWORD2
-isNewline	KEYWORD2
 setPrefix	KEYWORD2
 startPrefix	KEYWORD2
 setPostfix	KEYWORD2
@@ -69,16 +67,14 @@ echo	KEYWORD2
 printComments	KEYWORD2
 echoToAlt	KEYWORD2
 copyRepyAlt	KEYWORD2
-enableCommands	KEYWORD2
-disableCommands	KEYWORD2
+commandProcessor	KEYWORD2
 stripCR	KEYWORD2
 multiCommander	KEYWORD2
-enableErrors	KEYWORD2
-disableErrors	KEYWORD2
-enablePrompt	KEYWORD2
-disablePrompt	KEYWORD2
-enableHelp	KEYWORD2
-disableHelp	KEYWORD2
+errorMessages	KEYWORD2
+commandPrompt	KEYWORD2
+showHelp	KEYWORD2
+internalCommands	KEYWORD2
+showInternalCommands	KEYWORD2
 getSettings	KEYWORD2
 setSettings	KEYWORD2
 getPortSettings	KEYWORD2
@@ -88,7 +84,6 @@ getFloat	KEYWORD2
 getDouble	KEYWORD2
 printCommandList	KEYWORD2
 printCommanderVersion	KEYWORD2
-unknownCommand	KEYWORD2
 printAlt	KEYWORD2
 printAltln	KEYWORD2
 writeAlt	KEYWORD2

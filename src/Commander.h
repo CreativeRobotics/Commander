@@ -5,8 +5,24 @@
 
 #include <Arduino.h>
 #include <string.h>
+
+#ifndef PRINT_LINE_DELAY
+	#define PRINT_LINE_DELAY 
+#endif
 class Commander;
 
+#ifndef ON
+	#define ON true
+#endif
+#ifndef OFF
+	#define OFF false
+#endif
+#ifndef ENABLED
+	#define ENABLED true
+#endif
+#ifndef DISABLED
+	#define DISABLED false
+#endif
 typedef bool (*cmdHandler)(Commander& Cmdr); //command handler function pointer type
 //Command handler array type - contains command string and function pointer
 
@@ -42,26 +58,36 @@ typedef union {
 
 typedef union {
   struct {
-    uint16_t echoTerminal:1; 					//0
-    uint16_t echoToAlt:1;  						//1
-    uint16_t copyResponseToAlt:1; 		//2
-		uint16_t commandParserEnabled:1;	//3
-		uint16_t errorMessagesEnabled:1;	//4
-		uint16_t commandPromptEnabled:1;	//5
-		uint16_t helpEnabled:1; 					//6 enable the help system
-		uint16_t multiCommanderMode:1; 		//7 set to true when using multiple commander objects for multilayerd commands. Prevents multiple command prompts from appearing
-		uint16_t printComments:1; 				//8 set to true and lines prefixed with the comment char will print to the out and alt ports
-		uint16_t locked:1; 								//9 locks or unlocks commander
-		uint16_t useHardLock:1; 					//10 use hard or soft lock (0 or 1)
-		uint16_t stripCR:1; 							//11 Strip carriage returns from the buffer
+    uint16_t echoTerminal:1; 						//0
+    uint16_t echoToAlt:1;  							//1
+    uint16_t copyResponseToAlt:1; 			//2
+		uint16_t commandParserEnabled:1;		//3
+		uint16_t errorMessagesEnabled:1;		//4
+		uint16_t commandPromptEnabled:1;		//5
+		uint16_t helpEnabled:1; 						//6 enable the help system
+		uint16_t internalCommandsEnabled:1;	//7 disables the internal commands - stops them working
+		uint16_t printInternalCommands:1;		//8 enable printing of internal commands with help
+		uint16_t multiCommanderMode:1; 			//9 set to true when using multiple commander objects for multilayerd commands. Prevents multiple command prompts from appearing
+		uint16_t printComments:1; 					//10 set to true and lines prefixed with the comment char will print to the out and alt ports
+		uint16_t locked:1; 									//11 locks or unlocks commander
+		uint16_t useHardLock:1; 						//12 use hard or soft lock (0 or 1)
+		uint16_t stripCR:1; 								//13 Strip carriage returns from the buffer
+		uint16_t streamType:2;							//14-15 A two bit code indicating the stream type (Serial, File, HTML, OTHER)
   } bit;        // used for bit  access  
   uint16_t reg;  //used for register access 
 } cmdSettings_t;
-//default is 0b00000100001011000
+//default is 0b11000100001011000
 //const String CommanderVersionNumber = "1.0.1";
 const uint8_t majorVersion = 1;
-const uint8_t minorVersion = 3;
-const uint8_t subVersion   = 1;
+const uint8_t minorVersion = 4;
+const uint8_t subVersion   = 0;
+
+typedef enum streamType_t{
+	SERIAL_STREAM = 0,
+	FILE_STREAM = 1,
+	WEB_STREAM = 2,
+	UNDEFINED_STREAM = 3
+} streamType_t;
 
 typedef struct portSettings_t{
 	Stream *inPort = NULL;
@@ -78,7 +104,7 @@ typedef struct portSettings_t{
 #define COMMENT_COMMAND 										-3
 #define INTERNAL_COMMAND_ITEMS 							8
 
-#define COMMANDER_DEFAULT_REGISTER_SETTINGS 0x858
+#define COMMANDER_DEFAULT_REGISTER_SETTINGS 0b0010000111011000
 //Default settings:
 //commandParserEnabled = true
 //errorMessagesEnabled = true
@@ -91,7 +117,8 @@ typedef struct portSettings_t{
 	#define printAltln 	ports.altPort->println
 	#define writeAlt 	  ports.altPort->write
 
-
+#define HARD_LOCK true
+#define SOFT_LOCK false
 const uint16_t SBUFFER_DEFAULT = 128;
 	
 //some const strings for common messages
@@ -113,15 +140,13 @@ public:
 	void	 begin(Stream *sPort, const commandList_t *commands, uint32_t size);
 	void	 begin(Stream *sPort, Stream *oPort, const commandList_t *commands, uint32_t size);
 	bool   update();
-	bool   updatePending();
-	bool 	 printCommands() {printCommandList();}
 	void	 setPassPhrase(String& phrase) {passPhrase = &phrase;}
 	void   printPassPhrase() {print(*passPhrase);}
 	void 	 lock() {ports.settings.bit.locked = true;}
 	void 	 unlock() {ports.settings.bit.locked = false;}
-	void 	 setHardLock(bool hlState) {ports.settings.bit.useHardLock = hlState;}
+	void 	 setLockType(bool hlState) {ports.settings.bit.useHardLock = hlState;}
 	bool	 isLocked() {return ports.settings.bit.locked;}
-	bool	 hardLockEnabled() {return ports.settings.bit.useHardLock;}
+	bool	 getLockType() {return ports.settings.bit.useHardLock;}
 	bool   feed(Commander& Cmdr);
 	bool   hasPayload();
 	String getPayload();
@@ -147,9 +172,11 @@ public:
 	Stream* getInputPort()  												{return ports.inPort;}
 	void 	 deleteAltPort() {ports.altPort = NULL;}
 	void   attachSpecialHandler(cmdHandler handler) {customHandler = handler;}
+	void attachDefaultHandler(cmdHandler handler) {defaultHandler = handler;}
 	void   setBuffer(uint16_t buffSize);
 	void   attachCommands(const commandList_t *commands, uint32_t size);
-	
+	void   setStreamType(streamType_t newType) {ports.settings.bit.streamType = (uint16_t)newType;}
+	streamType_t getStreamType() {return (streamType_t)ports.settings.bit.streamType;}
 	void 	 quickSetHelp();
 	bool   quickSet(String cmd, int& var);
 	bool   quickSet(String cmd, float& var);
@@ -158,46 +185,53 @@ public:
 	void   quickGet(String cmd, float var);
 	
 	size_t println() {
-		
+		yield();
 		if( ports.settings.bit.copyResponseToAlt ) printAltln();
 		
+		yield();
 		if(ports.outPort){ 
 			return ports.outPort->println(); 
 		}
-		yield();
+		return 0;
 	}
 	//Template functions for print, println and write
 	template <class printType>
 	size_t print(printType printableVariable){
 		
+		yield();
 		if( ports.settings.bit.copyResponseToAlt ) printAlt(printableVariable);
 		
+		yield();
 		if(ports.outPort){ 
 			//#if defined (CMD_ENABLE_FORMATTING)
 				doPrefix();
 			//#endif
 			return ports.outPort->print(printableVariable); 
 		}
-		yield();
+		return 0;
 	}
 	template <class printType>
 	size_t print(printType printableVariable, int fmt){
 		
+		yield();
 		if( ports.settings.bit.copyResponseToAlt ) printAlt(printableVariable, fmt);
 		
+		yield();
 		if(ports.outPort){ 
 			//#if defined (CMD_ENABLE_FORMATTING)
 				doPrefix();
 			//#endif
 			return ports.outPort->print(printableVariable, fmt); 
 		}
-		yield();
+		return 0;
 	}
 	template <class printType>
 	size_t println(printType printableVariable){
 		
+		yield();
 		if( ports.settings.bit.copyResponseToAlt ) printAltln(printableVariable);
 		
+		yield();
 		if(ports.outPort){ 
 			//#if defined (CMD_ENABLE_FORMATTING)
 				doPrefixln();
@@ -208,13 +242,15 @@ public:
 			//#endif
 			return ports.outPort->println(printableVariable); 
 		}
-		yield();
+		return 0;
 	}
 	template <class printType>
 	size_t println(printType printableVariable, int fmt){
 		
+		yield();
 		if( ports.settings.bit.copyResponseToAlt ) printAltln(printableVariable, fmt);
 		
+		yield();
 		if(ports.outPort){ 
 			//#if defined (CMD_ENABLE_FORMATTING)
 				doPrefixln();
@@ -225,13 +261,15 @@ public:
 			//#endif
 			return ports.outPort->println(printableVariable, fmt); 
 		}
-		yield();
+		return 0;
 	}
 	template <class printType>
 	size_t write(printType printableVariable)	{ 
 		
+		yield();
 		if( ports.settings.bit.copyResponseToAlt ) writeAlt(printableVariable);
 		
+		yield();
 		if(ports.outPort){ 
 			//#if defined (CMD_ENABLE_FORMATTING)
 				doPrefix();
@@ -240,14 +278,15 @@ public:
 			//add a check to see if the printable variable is a newline and apply postfix
 			return ports.outPort->write(printableVariable); 
 		}
-		yield();
 		return 0;
 	}
 	template <class printType>
 	size_t write(printType printableVariable, int length)	{ 
 		
+		yield();
 		if( ports.settings.bit.copyResponseToAlt ) writeAlt(printableVariable, length);
 		
+		yield();
 		if(ports.outPort){ 
 			//#if defined (CMD_ENABLE_FORMATTING)
 				doPrefix();
@@ -255,14 +294,9 @@ public:
 			//#endif
 			return ports.outPort->write(printableVariable, length); 
 		}
-		yield();
 		return 0;
 	}
 	
-	bool isNewline(char var) {		return (var == '\n') ? true : false;}
-	bool isNewline(int var) {			return (var == '\n') ? true : false;}
-	bool isNewline(char var[]) {	return false;} //fix this so it looks for a newline at the end of the string ...
-	//set the prefix string and enable it for this command
 	
 //#if defined (CMD_ENABLE_FORMATTING)
 		void setPrefix(String prfx){
@@ -301,26 +335,38 @@ public:
 	
 	void setCommentChar(char cmtChar)     {commentChar    = cmtChar;}
 	void setReloadChar(char reloadChar)   {reloadCommandChar = reloadChar;}
-	void setEndOfLineChar(char eol) 			{endOfLine         = eol;}
+	void setEndOfLineChar(char eol) 			{endOfLineChar         = eol;}
+	void setPromptChar(char eol) 			    {promptChar         = eol;}
+	void setDelimChar(char eol) 			    {delimChar         = eol;}
 	
 	void echo(bool sState) 								{ports.settings.bit.echoTerminal = sState;}
 	void printComments(bool cState)				{ports.settings.bit.printComments = cState;}
-	void echoToAlt(bool sState) 					{ if(ports.altPort) ports.settings.bit.echoToAlt = sState;} //only allow this if the altPort exists
-	void copyRepyAlt(bool sState)  				{ if(ports.altPort) ports.settings.bit.copyResponseToAlt = sState; } //only allow this if the altPort exists
+	void echoToAlt(bool sState) 					{if(ports.altPort) ports.settings.bit.echoToAlt = sState;} //only allow this if the altPort exists
+	void copyRepyAlt(bool sState)  				{if(ports.altPort) ports.settings.bit.copyResponseToAlt = sState; } //only allow this if the altPort exists
 	
-	void enableCommands(bool sState)  		{ports.settings.bit.commandParserEnabled = true;}
-	void disableCommands(bool sState)  		{ports.settings.bit.commandParserEnabled = false;}
+	void commandProcessor(bool state)  		{ports.settings.bit.commandParserEnabled = state;}
+	bool commandProcessor() 							{return ports.settings.bit.commandParserEnabled;}
+	
 	void stripCR(bool sState) 						{ports.settings.bit.stripCR = sState;}
+	bool stripCR() 												{return ports.settings.bit.stripCR;}
+	
 	void multiCommander(bool enable) 			{ports.settings.bit.multiCommanderMode = enable;}
+	bool multiCommander() 								{return ports.settings.bit.multiCommanderMode;}
 	
-	void enableErrors()  									{ports.settings.bit.errorMessagesEnabled = true;}
-	void disableErrors()  								{ports.settings.bit.errorMessagesEnabled = false;}
+	void errorMessages(bool state)				{ports.settings.bit.errorMessagesEnabled = state;}
+	bool errorMessages() 									{return ports.settings.bit.errorMessagesEnabled;}
 	
-	void enablePrompt()  									{ports.settings.bit.commandPromptEnabled = true;}
-	void disablePrompt()  								{ports.settings.bit.commandPromptEnabled = false;}
+	void commandPrompt(bool state)				{ports.settings.bit.commandPromptEnabled = state;}
+	bool commandPrompt() 									{return ports.settings.bit.commandPromptEnabled;}
 	
-	void enableHelp()  									  {ports.settings.bit.helpEnabled = true;}
-	void disableHelp()  								  {ports.settings.bit.helpEnabled = false;}
+	void showHelp(bool state)				    	{ports.settings.bit.helpEnabled = state;}
+	bool showHelp() 											{return ports.settings.bit.helpEnabled;}
+
+	void internalCommands(bool state)			{ports.settings.bit.internalCommandsEnabled = state;}
+	bool internalCommands() 							{return ports.settings.bit.internalCommandsEnabled;}
+	
+	void showInternalCommands(bool state) {ports.settings.bit.printInternalCommands = state;}
+	bool showInternalCommands() 					{return ports.settings.bit.printInternalCommands;}
 	
 	cmdSettings_t  getSettings() 											{return ports.settings;}
 	void  				 setSettings(cmdSettings_t newSet)  {ports.settings = newSet;}
@@ -328,21 +374,42 @@ public:
 	portSettings_t getPortSettings() 											  {return ports;}
 	void           setPortSettings(portSettings_t newPorts) {ports = newPorts;}
 	
+	void printDiagnostics();
 	
 	
 	//Useful functions for extracting values
-	bool  getInt(int &myInt); //Returns trie if myInt was updated with a value parsed from the command String
-	bool 	getFloat(float &myFloat);  //Returns true if myFloat was updated with a value parsed from the command String
-	bool  getDouble(double &myDouble);  //Returns true if myDouble was updated with a value parsed from the command String
+	template <class iType>
+	bool getInt(iType &myIvar)	{ 
+		if(tryGet()){
+			//Parse it to the variable
+			String subStr = bufferString.substring(dataReadIndex);
+			myIvar = (iType)subStr.toInt();
+			//if there is no space next, set dataReadIndex to zero and return true - you parsed an int, but next time it will fail.
+			nextNumberDelimiter();
+			return true; //nextSpace();
+		}else return 0;
+	}
+	//bool  getInt(int8_t &myInt); //Returns true if myInt was updated with a value parsed from the command String
+	//bool  getInt(int &myInt); //Returns true if myInt was updated with a value parsed from the command String
+	//bool  getInt(long &myInt); //Returns true if myInt was updated with a value parsed from the command String
+	bool getFloat(float &myFloat);  //Returns true if myFloat was updated with a value parsed from the command String
+	bool getDouble(double &myDouble);  //Returns true if myDouble was updated with a value parsed from the command String
+	bool getString(String &myString); //returns the next string in the payload - determined by the delimiters space and special char
+	uint8_t countItems(); //Returns the number of items in the payload. An item is any string with a space or delimiterChar at each end (or the end of line)
+	
+	uint16_t 	getCommandListLength() {return commandListEntries;} //returns the number of commands
+	String 		getCommandItem(uint16_t commandItem); //returns a String containing the specified command and help text
+	
+	uint8_t getInternalCommandLength() {return INTERNAL_COMMAND_ITEMS;}
+	String getInternalCommandItem(uint8_t internalItem);
 	//Both these internal commands can be invoked externally. Their commands handlers can be overridden by the user, whose own handler can then call these if required
 	void printCommandList();
 	void printCommanderVersion();
-	void unknownCommand();
+	
 	
 	String bufferString = ""; //the buffer - public so user functions can read it
 	String commanderName = "CMD";
-	char promptCharacter = '>';
-	char eocCharacter = '='; //special end of command character - Is used IN ADDITION to the default space char to mark the end of a command
+
 	//#if defined (CMD_ENABLE_FORMATTING)
 	String prefixString = "";
 	String postfixString = "";
@@ -358,6 +425,7 @@ private:
 			commandState.bit.newlinePrinted = false;
 		}
 		void doPrefixln(){ //handle prefixes for command replies with newlines
+			PRINT_LINE_DELAY
 			if(commandState.bit.prefixMessage && commandState.bit.newlinePrinted) ports.outPort->print(prefixString); 
 			commandState.bit.newlinePrinted = true;
 		}
@@ -367,6 +435,7 @@ private:
 	void computeLengths();
 	uint8_t getLength(uint8_t indx);
 	bool handleCommand();
+	bool handleUnknown();
 	void tryUnlock();
   bool checkPass();
 	void handleComment();
@@ -375,21 +444,27 @@ private:
 	void resetBuffer();
 	int  matchCommand();
 	bool checkCommand(uint16_t cmdIdx);
-	//bool checkAltCommand(uint16_t cmdIdx);
 	int  handleInternalCommand(uint16_t internalCommandIndex);
-	bool  handleCustomCommand();
+	bool handleCustomCommand();
 	bool tryGet();
-	bool nextSpace();
-	bool nextDelimiter();
-	int findNumeral(uint8_t startIdx);
+	bool nextTextDelimiter();
+	bool nextNumberDelimiter();
+	int  findNumeral(uint8_t startIdx);
 	bool isNumber(String str);
-	bool isDelimiter(char ch);
+	bool isNumberDelimiter(char ch);
+	bool isTextDelimiter(char ch);
 	bool isNumeral(char ch);
 	bool isCommandChar(char dataByte);
 	bool isCommandStart(char dataByte);
 	bool isEndOfLine(char dataByte);
-	String getWhiteSpace(uint8_t spaces);
+		
+	bool isNewline(char var) {		return (var == '\n') ? true : false;}
+	bool isNewline(int var) {			return (var == '\n') ? true : false;}
+	bool isNewline(char var[]) {	return false;} //fix this so it looks for a newline at the end of the string ...
+	//set the prefix string and enable it for this command
 	
+	String getWhiteSpace(uint8_t spaces);
+	uint8_t getInternalCmdLength(const char intCmd[]);
 	const commandList_t* commandList;
 	//const commandList_t* altCommandList;
 	//Add a second command list pointer and allow both to be used concurrently
@@ -400,6 +475,7 @@ private:
 	//uint16_t altCommandListEntries = 0;
 	
   cmdHandler customHandler;
+  cmdHandler defaultHandler;
 	cmdState_t commandState;
 	portSettings_t ports;
 	
@@ -409,17 +485,16 @@ private:
 	uint8_t endIndexOfLastCommand = 0;
 	uint8_t longestCommand = 0;
 	char commentChar = '#'; //marks a line as a comment - ignored by the command parser
-	char reloadCommandChar = '/'; //send this character to automatically reprocess the old buffer - same as resending the last command from the users POV.
+	char reloadCommandChar = '/'; //send this character to automatically reprocess the old buffer - same as resending the last command from the users POV.	
+	char promptChar = '>';
+	char delimChar = '='; //special delimiter character - Is used IN ADDITION to the default space char to mark the end of a command or seperation between items
+	char endOfLineChar = '\n';
   uint16_t bytesWritten = 0; //overflow check for bytes written into the buffer
 
-  //String pendingCommandString = "";
 	uint16_t bufferSize = SBUFFER_DEFAULT;
 	uint16_t dataReadIndex = 0; //for parsing many numbers
   
-  uint8_t endOfLine = '\n';
-
-	//const uint16_t internalCommandItems = INTERNAL_COMMAND_ITEMS;
-	const char* internalCommands[INTERNAL_COMMAND_ITEMS];
+	const char* internalCommandArray[INTERNAL_COMMAND_ITEMS];
 	
 	
 	String *passPhrase = NULL;

@@ -1,12 +1,12 @@
 #include "Commander.h"
 
 //Initialise the array of internal commands with the constructor
-Commander::Commander(): internalCommands ({ "U",
+Commander::Commander(): internalCommandArray ({ "U",
 																					  "X",
 																					  "help",
 																						"?",
 																						"echo",
-																						"echo aux",
+																						"echox",
 																						"enable",
 																						"errors"}){
 	bufferString.reserve(bufferSize);
@@ -14,12 +14,12 @@ Commander::Commander(): internalCommands ({ "U",
 	commandState.reg = COMMANDER_DEFAULT_STATE_SETTINGS;
 }
 //==============================================================================================================
-Commander::Commander(uint16_t reservedBuffer): internalCommands ({ 	"U",
+Commander::Commander(uint16_t reservedBuffer): internalCommandArray ({ 	"U",
 																																		"X",
 																																		"help",
 																																		"?",
 																																		"echo",
-																																		"echo aux",
+																																		"echox",
 																																		"enable",
 																																		"errors"}){
 	//bufferString.reserve(bufferSize);
@@ -42,6 +42,8 @@ void	Commander::begin(Stream *sPort, const commandList_t *commands, uint32_t siz
 	ports.inPort = sPort;
 	ports.outPort = sPort;
 	attachCommands(commands, size);
+	//print("CMD: Size is: ");
+	//println(size);
 	resetBuffer();
 }
 //==============================================================================================================
@@ -135,16 +137,7 @@ void Commander::bridgePorts(){
 			while(ports.inPort->available()) ports.altPort->write(ports.inPort->read());
 	}
 }
-//==============================================================================================================
-bool   Commander::updatePending(){
-	if(commandState.bit.isCommandPending){
-		//there is a command still in the buffer, process it now
-		commandState.bit.isCommandPending = false;
-		commandState.bit.commandHandled = handleCommand();
-		if(ports.inPort) return (bool)ports.inPort->available(); //return true if any bytes left to read
-		return 0;
-	}
-}
+
 //==============================================================================================================
 
 
@@ -152,12 +145,12 @@ bool Commander::feed(Commander& Cmdr){
 	//Feed the payload of a different commander object to this one
 	//Copy the String buffer then handle the command
 	
-	bufferString = Cmdr.bufferString.substring(Cmdr.endIndexOfLastCommand+1);
+	bufferString = Cmdr.getPayload();
 
-	disablePrompt(); //dsiable the prompt so it doesn't print twice
+	commandPrompt(OFF); //dsiable the prompt so it doesn't print twice
 	commandState.bit.commandHandled = handleCommand(); //try and handle the command
 
-	if( ports.settings.bit.multiCommanderMode == false ) enablePrompt(); //re-enable the prompt if in single commander mode so it prints on exit
+	if( ports.settings.bit.multiCommanderMode == false ) commandPrompt(ON); //re-enable the prompt if in single commander mode so it prints on exit
 	return commandState.bit.commandHandled;
 }
 //==============================================================================================================
@@ -165,7 +158,7 @@ bool Commander::feed(Commander& Cmdr){
 
 bool Commander::hasPayload(){
 	//returns true if there is anything except an end of line after the command
-	if(bufferString.charAt(endIndexOfLastCommand) != endOfLine) return true;
+	if(bufferString.charAt(endIndexOfLastCommand) != endOfLineChar) return true;
 	return false;
 }
 //==============================================================================================================
@@ -185,17 +178,17 @@ String Commander::getPayloadString(){
 bool Commander::feedString(String newString){
 	//Feed a string to commander and process it - bypassing any read of the serial ports
 	bufferString = newString;
-	if( !isEndOfLine(bufferString.charAt( bufferString.length()-1 ) ) ) bufferString += endOfLine;//append an end of line character if none there
-	disablePrompt();
+	if( !isEndOfLine(bufferString.charAt( bufferString.length()-1 ) ) ) bufferString += endOfLineChar;//append an end of line character if none there
+	commandPrompt(OFF);
 	commandState.bit.commandHandled = handleCommand();
-	if( ports.settings.bit.multiCommanderMode == false ) enablePrompt(); //re-enable the prompt if in single commander mode so it prints on exit
+	if( ports.settings.bit.multiCommanderMode == false ) commandPrompt(ON); //re-enable the prompt if in single commander mode so it prints on exit
 	return commandState.bit.commandHandled;
 }//==============================================================================================================
 
 void Commander::loadString(String newString){
 	//Load a string to commander for processing the next time update() is called
 	bufferString = newString;
-	if( !isEndOfLine(bufferString.charAt( bufferString.length()-1 ) ) ) bufferString += endOfLine;//append an end of line character if none there
+	if( !isEndOfLine(bufferString.charAt( bufferString.length()-1 ) ) ) bufferString += endOfLineChar;//append an end of line character if none there
 	commandState.bit.isCommandPending = true; 
 	return;
 }
@@ -204,7 +197,7 @@ void Commander::loadString(String newString){
 
 bool Commander::endLine(){
 	//add a newline to the buffer and process it - used for reading the last line of a file 
-	bufferString+= endOfLine;
+	bufferString+= endOfLineChar;
 	commandState.bit.commandHandled = handleCommand();
 	return commandState.bit.commandHandled;
 }
@@ -215,7 +208,7 @@ void Commander::transfer(Commander& Cmdr){
 	//Transfer command FROM the attached object TO this one
 	//the attached ports need to be copied to this one - we assume the user has backed them up first
 	ports = Cmdr.getPortSettings();
-	if( ports.settings.bit.multiCommanderMode ) Cmdr.disablePrompt(); //disable the prompt for the other commander
+	if( ports.settings.bit.multiCommanderMode ) Cmdr.commandPrompt(OFF); //disable the prompt for the other commander
   printCommandPrompt();
 }
 //==============================================================================================================
@@ -230,13 +223,14 @@ bool Commander::transferTo(const commandList_t *commands, uint32_t size, String 
 		bufferString.remove(0, endIndexOfLastCommand+1);
 		//Serial.print(bufferString);
 		//keep this command prompt disabled if it wasn't already
-		disablePrompt(); //dsiable the prompt so it doesn't print twice
+		commandPrompt(OFF); //dsiable the prompt so it doesn't print twice
 		commandState.bit.commandHandled = handleCommand(); //try and handle the command
-		if( ports.settings.bit.multiCommanderMode == false ) enablePrompt(); //re-enable the prompt if in single commander mode so it prints on exit
+		if( ports.settings.bit.multiCommanderMode == false ) commandPrompt(ON); //re-enable the prompt if in single commander mode so it prints on exit
 		return true;
   }
 	return false;
 }
+//==============================================================================================================
 
 void Commander::transferBack(const commandList_t *commands, uint32_t size, String newName){
 	//Transfer command to the new command array
@@ -283,6 +277,7 @@ void Commander::quickSetHelp(){
 	if( bufferString.indexOf("help") > -1 )	commandState.bit.quickHelp = true;
 	else commandState.bit.quickHelp = false;
 }
+//==============================================================================================================
 
 bool Commander::quickSet(String cmd, int& var){
 	//look for the string, if found try and parse an int
@@ -295,6 +290,7 @@ bool Commander::quickSet(String cmd, int& var){
 	}
 	return false;
 }
+//==============================================================================================================
 bool Commander::quickSet(String cmd, float& var){
 	//look for the string, if found try and parse an int
 	//print help if help was triggered
@@ -306,6 +302,7 @@ bool Commander::quickSet(String cmd, float& var){
 	}
 	return false;
 }
+//==============================================================================================================
 bool Commander::quickSet(String cmd, double& var){
 	//look for the string, if found try and parse an int
 	//print help if help was triggered
@@ -318,6 +315,7 @@ bool Commander::quickSet(String cmd, double& var){
 	}
 	return false;
 }
+//==============================================================================================================
 int Commander::qSetSearch(String &cmd){
 	int idx = bufferString.indexOf(cmd);
 	if(idx < 0) return false;
@@ -327,6 +325,7 @@ int Commander::qSetSearch(String &cmd){
 	//else 								idx = bufferString.indexOf(" ", idx+1); //find the next space
 	//return idx;
 }
+//==============================================================================================================
 
 bool Commander::qSetHelp(String &cmd){
 	if(commandState.bit.quickHelp){
@@ -336,6 +335,7 @@ bool Commander::qSetHelp(String &cmd){
 	}
 	return 0;
 }
+//==============================================================================================================
 
 void  Commander::quickGet(String cmd, int var){
 	//look for the string, if found try and parse an int
@@ -351,6 +351,7 @@ void  Commander::quickGet(String cmd, int var){
 		println(var);
 	}
 }
+//==============================================================================================================
 void  Commander::quickGet(String cmd, float var){
 	//look for the string, if found try and parse an int
 	//print help if help was triggered
@@ -365,8 +366,44 @@ void  Commander::quickGet(String cmd, float var){
 		println(var);
 	}
 }
+//==============================================================================================================
+/*
+template <class iType>
+bool Commander::getInt(iType &myIvar)	{ 
+	if(tryGet()){
+		//Parse it to the variable
+		String subStr = bufferString.substring(dataReadIndex);
+		myIvar = (iType)subStr.toInt();
+		//if there is no space next, set dataReadIndex to zero and return true - you parsed an int, but next time it will fail.
+		nextDelimiter();
+		return true; //nextSpace();
+	}else return 0;
+}*/
 	
+/*
+bool Commander::getInt(int8_t &myInt){
+	if(tryGet()){
+		//Parse it to the variable
+		String subStr = bufferString.substring(dataReadIndex);
+		myInt = (int8_t)subStr.toInt();
+		//if there is no space next, set dataReadIndex to zero and return true - you parsed an int, but next time it will fail.
+		nextDelimiter();
+		return true; //nextSpace();
+	}else return 0;
+}
+
 bool Commander::getInt(int &myInt){
+	if(tryGet()){
+		//Parse it to the variable
+		String subStr = bufferString.substring(dataReadIndex);
+		myInt = (int)subStr.toInt();
+		//if there is no space next, set dataReadIndex to zero and return true - you parsed an int, but next time it will fail.
+		nextDelimiter();
+		return true; //nextSpace();
+	}else return 0;
+}
+
+bool Commander::getInt(long &myInt){
 	if(tryGet()){
 		//Parse it to the variable
 		String subStr = bufferString.substring(dataReadIndex);
@@ -376,26 +413,96 @@ bool Commander::getInt(int &myInt){
 		return true; //nextSpace();
 	}else return 0;
 }
+*/
 bool Commander::getFloat(float &myFloat){
 	if(tryGet()){
 		//Parse it to the variable
 		String subStr = bufferString.substring(dataReadIndex);
 		myFloat = subStr.toFloat();
 		//if there is no space next, set dataReadIndex to zero and return true - you parsed an int, but next time it will fail.
-		nextDelimiter();
+		nextNumberDelimiter();
 		return true; //nextSpace();
 
 	}else return 0;
 }
+//==============================================================================================================
+
 bool Commander::getDouble(double &myDouble){
 	if(tryGet()){
 		//Parse it to the variable
 		String subStr = bufferString.substring(dataReadIndex);
 		myDouble = subStr.toFloat();//subStr.toDouble(); //toDouble() not working on ESP32
-		nextDelimiter();
+		nextNumberDelimiter();
 		return true; //nextSpace();
 	}else return 0;
 }
+//==============================================================================================================
+
+bool Commander::getString(String &myString){
+	if(!hasPayload() || dataReadIndex < endIndexOfLastCommand) return 0;
+	//myString = getPayloadString();
+	dataReadIndex++;
+	int start = dataReadIndex;
+	//print("start= ");
+	//println(start);
+	if(nextTextDelimiter()){
+		//print("end= ");
+		//println(dataReadIndex);
+		myString = bufferString.substring(start, dataReadIndex);
+		
+	}else myString = bufferString.substring(start, bufferString.length()-1);
+	//print("String= ");
+	//println(myString);
+	return 1;
+}
+//==============================================================================================================
+
+uint8_t Commander::countItems(){
+	//Returns the number of items in the payload. Items are any substrings with a space, delimChar or endOfLineChar at each end.
+	uint8_t items = 0;
+	bool state = 0;
+	for(uint16_t n = endIndexOfLastCommand; n < bufferString.length(); n++){
+		if( !isTextDelimiter(bufferString.charAt(n)) && !state ){
+			//if NOT a delimiter and you are NOT in a valid string, you have found the start of a valid string, so cound it and change state
+			items++;
+			state = !state;
+		}
+		else if( isTextDelimiter(bufferString.charAt(n)) && state ){
+			//if a delimiter and IN a valid string, go back to waiting for the end of a delimiter
+			state = !state;
+		}
+	}
+	return items;
+}
+//==============================================================================================================
+
+
+String 		Commander::getCommandItem(uint16_t commandItem){
+	if(commandItem >= commandListEntries ) return "";
+	String line = "\t";
+	line.concat(commandList[commandItem].commandString);
+	line.concat(getWhiteSpace(longestCommand - commandLengths[commandItem]));
+	line.concat("| ");
+	line.concat(commandList[commandItem].manualString);
+	return line;
+}
+//==============================================================================================================
+
+
+
+String Commander::getInternalCommandItem(uint8_t internalItem){
+	if(internalItem >= INTERNAL_COMMAND_ITEMS ) return "";
+	String line = "\t";
+	if(internalItem > 3){
+		line.concat(internalCommandArray[internalItem]);
+		line.concat(" (on/off)");
+	}else line.concat(internalCommandArray[internalItem]);
+	return line;
+}
+//==============================================================================================================
+
+
+
 //Try to find the next numeral from where readIndex is
 bool Commander::tryGet(){
 	if(dataReadIndex < endIndexOfLastCommand){
@@ -415,8 +522,9 @@ bool Commander::tryGet(){
 	//println("returning true");
 	return 1;
 }
+//==============================================================================================================
 //find the next space, set readIndex to it
-bool Commander::nextSpace(){
+bool Commander::nextTextDelimiter(){
 	int indx = bufferString.indexOf(" ", dataReadIndex);
 	if(indx > 0) {
 		//if it exists set the read index to it for next time
@@ -425,11 +533,12 @@ bool Commander::nextSpace(){
 	}else dataReadIndex = 0;
 	return 0;
 }
+//==============================================================================================================
 //find the next delimiter, set readIndex to it
 //Delimiter is anything except - . and any numeral 0-9
-bool Commander::nextDelimiter(){
+bool Commander::nextNumberDelimiter(){
 	for(uint16_t n = dataReadIndex; n < bufferSize; n++){
-		if(isDelimiter(bufferString.charAt(n))) {
+		if(isNumberDelimiter(bufferString.charAt(n))) {
 			//print("Next delimiter found at ");
 			//println(n);
 			dataReadIndex = n;
@@ -443,16 +552,18 @@ bool Commander::nextDelimiter(){
 void Commander::printCommandPrompt(){
 	if(!ports.settings.bit.commandPromptEnabled) return;
 		print(commanderName);
-		print(promptCharacter);
+		print(promptChar);
 }
 //==============================================================================================================
 bool Commander::containsTrue(){
 	if(bufferString.indexOf(" true") != -1) return true;
+	else if(bufferString.indexOf(" TRUE") != -1) return true;
 	return false;
 }
 //==============================================================================================================
 bool Commander::containsOn(){
 	if(bufferString.indexOf(" on") != -1) return true;
+	else if(bufferString.indexOf(" ON") != -1) return true;
 	return false;
 }
 
@@ -510,13 +621,11 @@ bool Commander::handleCommand(){
     returnVal = 0;
 	}else  if(commandVal == UNKNOWN_COMMAND) {
     //Unknown command
-		
-		unknownCommand();
-    returnVal = 0; //unknown command function
+		returnVal = handleUnknown(); //unknown command function
   }
 	else if(commandVal == CUSTOM_COMMAND && ports.settings.bit.locked == false){
 		  returnVal = handleCustomCommand();
-			if(returnVal == 1) unknownCommand();
+			if(returnVal == 1) returnVal = handleUnknown();
 	}
 	
   else if(ports.settings.bit.locked == false){
@@ -532,6 +641,19 @@ bool Commander::handleCommand(){
 	printCommandPrompt();
   return returnVal;
 }
+//==============================================================================================================
+
+bool Commander::handleUnknown(){
+	if(defaultHandler != NULL) return defaultHandler(*this);
+	
+	if(ports.settings.bit.errorMessagesEnabled){
+		print(F("Command: \'"));
+		print(bufferString.substring(0, bufferString.length()-1));
+		println(F("\' not recognised"));
+	}
+	return 0;
+}
+//==============================================================================================================
 
 void Commander::tryUnlock(){
 	//try and unlock commander
@@ -541,11 +663,13 @@ void Commander::tryUnlock(){
 		if(passPhrase == NULL || checkPass()) unlock();
 	}
 }
+//==============================================================================================================
 
 bool Commander::checkPass(){
 	if(bufferString.indexOf(*passPhrase))	return true;
 	return false;
 }
+//==============================================================================================================
 
 void Commander::handleComment(){
 	//if comments are to be printed then print out the buffer
@@ -554,6 +678,7 @@ void Commander::handleComment(){
 	}
 }
 //==============================================================================================================
+
 bool  Commander::processBuffer(int dataByte){
   if(dataByte == -1) return false; //no actual data to process
 
@@ -604,7 +729,7 @@ void Commander::writeToBuffer(int dataByte){
   //buf[bytesWritten] = dataByte;
   if(ports.settings.bit.stripCR && dataByte != '\r') bufferString += (char)dataByte; //ingore CR
 	else bufferString += (char)dataByte;
-  if(dataByte == endOfLine) commandState.bit.newLine = true;
+  if(dataByte == endOfLineChar) commandState.bit.newLine = true;
   bytesWritten++;
 }
 //==============================================================================================================
@@ -661,11 +786,15 @@ int Commander::matchCommand(){
 	//First see if it starts with an int - if so then use the number function
 	//Check if it is a number or minus sign
 	if( isNumber(bufferString) ) return CUSTOM_COMMAND;
+	if(!ports.settings.bit.internalCommandsEnabled) return UNKNOWN_COMMAND;
 	for(uint16_t n = 0; n < INTERNAL_COMMAND_ITEMS; n++){
 		//String intCmdLine = 
-		if(bufferString.startsWith( internalCommands[n] )){
-			//call the internal command function
-			return handleInternalCommand(n);
+		if(bufferString.startsWith( internalCommandArray[n] )){
+			uint8_t len = getInternalCmdLength(internalCommandArray[n]);
+			if( isTextDelimiter(bufferString.charAt( len )) || bufferString.charAt( len ) == '\n'){
+				return handleInternalCommand(n);
+			}
+
 		}
 	}
 	
@@ -680,7 +809,7 @@ bool Commander::checkCommand(uint16_t cmdIdx){
 	if( bufferString.charAt( commandLengths[cmdIdx] ) == ' ' ) return true; //space after command
 	if( bufferString.charAt( commandLengths[cmdIdx]-1 ) == ' ' ) return true; //command includes a trailing space
 	if( isEndOfLine( bufferString.charAt( commandLengths[cmdIdx] ) ) ) return true; ////end of line after command
-	if(bufferString.charAt( commandLengths[cmdIdx] ) == eocCharacter) return true; //alternative end of command character detected (e.g the '=' char)
+	if(bufferString.charAt( commandLengths[cmdIdx] ) == delimChar) return true; //alternative end of command character detected (e.g the '=' char)
 	return false; //failed check
 }
 /*
@@ -695,17 +824,31 @@ bool Commander::checkAltCommand(uint16_t cmdIdx){
 }*/
 //==============================================================================================================
 
+void Commander::printDiagnostics(){
+	//print diagnostic data for debugging
+	println("Command lengths");
+	for(int n = 0; n < commandListEntries; n++){
+		println(commandLengths[n]);
+	}
+	
+	print("End Idx Last Cmd ");
+	println(endIndexOfLastCommand);
+	print("longest Cmd ");
+	println(longestCommand);
+	print("Num of Cmds ");
+	println(commandListEntries);
+}
 
 int Commander::handleInternalCommand(uint16_t internalCommandIndex){
 	switch(internalCommandIndex){
 		case 0: //help
 			unlock();
-			println(unlockMessage);
+			if(ports.settings.bit.errorMessagesEnabled) println(unlockMessage);
 			//Lock Command printCommandList();
 			break;
 		case 1: //?
 		  lock();
-			println(lockMessage);
+			if(ports.settings.bit.errorMessagesEnabled) println(lockMessage);
 			//Unlock Command printCommanderVersion();
 			break;
 		case 2: //help
@@ -716,23 +859,31 @@ int Commander::handleInternalCommand(uint16_t internalCommandIndex){
 			break;
 		case 4: //CMDR echo 
 			ports.settings.bit.echoTerminal = containsOn();
-			print(F("Echo Terminal "));
-			ports.settings.bit.echoTerminal ? println("on") : println("off");
+			if(ports.settings.bit.errorMessagesEnabled){
+				print(F("Echo Terminal "));
+				ports.settings.bit.echoTerminal ? println("on") : println("off");
+			}
 			break;
 		case 5: //CMDR echo alt 
 			ports.settings.bit.echoToAlt = containsOn();
-			print(F("Echo Alt "));
-			ports.settings.bit.echoToAlt ? println("on") : println("off");
+			if(ports.settings.bit.errorMessagesEnabled){
+				print(F("Echo Alt "));
+				ports.settings.bit.echoToAlt ? println("on") : println("off");
+			}
 			break;
 		case 6: //CMDR enable commander
 			ports.settings.bit.commandParserEnabled = containsOn();
-			print(F("Commander Enabled "));
-			ports.settings.bit.commandParserEnabled ? println("on") : println("off");
+			if(ports.settings.bit.errorMessagesEnabled){
+				print(F("Command parser "));
+				ports.settings.bit.commandParserEnabled ? println("on") : println("off");
+			}
 			break;
 		case 7: //CMDR enable error messages
 			ports.settings.bit.errorMessagesEnabled = containsOn();
-			print(F("Error Messages Enabled "));
-			ports.settings.bit.errorMessagesEnabled ? println("on") : println("off");
+			if(ports.settings.bit.errorMessagesEnabled){
+				print(F("Error Messages "));
+				ports.settings.bit.errorMessagesEnabled ? println("on") : println("off");
+			}
 			break;
 	}
 	return INTERNAL_COMMAND;
@@ -745,21 +896,14 @@ bool  Commander::handleCustomCommand(){
 	if(customHandler == NULL) return 1;
 	return customHandler(*this);
 }
-//==============================================================================================================
-void Commander::unknownCommand(){
-	if(ports.settings.bit.errorMessagesEnabled){
-		print(F("Command: \'"));
-		print(bufferString.substring(0, bufferString.length()-1));
-		println(F("\' not recognised"));
-	}
-}
+
 //==============================================================================================================
 int Commander::findNumeral(uint8_t startIdx){
 	//return the index of the start of a number string
 	//print("FindNumeral started from ");
 	//println(startIdx);
 	for(uint8_t n = startIdx; n < bufferSize; n++){
-		if(bufferString.charAt(n) == endOfLine){
+		if(bufferString.charAt(n) == endOfLineChar){
 			//println("found EOL");
 			return -1;
 		}
@@ -786,10 +930,16 @@ bool Commander::isNumber(String str){
 	if(str.charAt(0) == 45 && isNumeral( str.charAt(1) )) return true;
 	return false;
 }
-bool Commander::isDelimiter(char ch){
+bool Commander::isNumberDelimiter(char ch){
 	//returns true if the first character is NOT valid number, minus sign, dot or NL/CR
 	if( isNumeral( ch ) || ch == '.' || ch == '-' || ch == '\n' || ch == '\r' || ch == 0) return false;
 	return true;
+}
+
+bool Commander::isTextDelimiter(char ch){
+	//this should be called is delimiter//it looks for a space or the eoc character (=)
+	if(ch == delimChar || ch == ' ') return 1;
+	return 0;
 }
 //==============================================================================================================
 bool Commander::isNumeral(char ch){
@@ -830,23 +980,19 @@ void Commander::printCommandList(){
 	cmdLine.concat(F(" User Commands:"));
 	println(cmdLine);
   for(n = 0; n < commandListEntries; n++){
-		
-		cmdLine = '\t';
-		cmdLine.concat(commandList[n].commandString);
-		//cmdLine += ' ';
-		cmdLine.concat(getWhiteSpace(longestCommand - commandLengths[n]));
-		cmdLine.concat("| ");
-		cmdLine.concat(commandList[n].manualString);
-		println(cmdLine);
+		//cmdLine = getCommandItem(n);
+		println(getCommandItem(n));
   }
+	if(!ports.settings.bit.internalCommandsEnabled || !ports.settings.bit.printInternalCommands) return;
   println(F(" Internal Commands:"));
 	for(n = 0; n < INTERNAL_COMMAND_ITEMS; n++){
-		write('\t');
-    if(n > 3){
-			print(internalCommands[n]);
-			println(F(" (on/off)"));
-		}
-		else println(internalCommands[n]);
+		println(getInternalCommandItem(n));
+		//write('\t');
+    //if(n > 3){
+		//	print(internalCommandArray[n]);
+		//	println(F(" (on/off)"));
+		//}
+		//else println(internalCommandArray[n]);
   }
 	print(F(" Reload character: "));
 	println(String(reloadCommandChar));
@@ -907,3 +1053,12 @@ void Commander::printCommanderVersion(){
 	if(customHandler != NULL)	println( F("\tCustom Cmd OK"));
 }
 //==============================================================================================================
+
+
+uint8_t Commander::getInternalCmdLength(const char intCmd[]){
+	for(int n = 0; n < 8; n++){
+		if(intCmd[n] == NULL) return n;
+	}
+	return 8;
+}
+	

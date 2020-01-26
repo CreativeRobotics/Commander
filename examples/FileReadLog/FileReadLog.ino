@@ -97,7 +97,7 @@ void loop() {
     cmd.attachAltPort(&myLogFile); //attach the log file to the alt port
     readOK = true;
     //Enable command prompts and echo characters
-    cmd.enablePrompt();
+    cmd.commandPrompt(ON);
     cmd.echo(true);
     //Now print out te prompt with a message
     cmd.println("----------------------------------------------------------------");

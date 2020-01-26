@@ -1,5 +1,35 @@
 Commander changelog
-Starting at 1.2.3
+(Changelog started at 1.2.3)
+
+Commander 2.0.0
+
+Re-worked several methods and method names and probably broke several things, for example setLockType(bool) replaces enableHardLock(), commandPrompt(bool) replaces enablePrompt() and disablePrompt(). Setting parameters like these are now all done by passing an argument, and macros for ON and OFF are defined.
+errorMessagesEnabled now controls all internal messages so disabling them will prevent replies from internal commands like 'echo' or 'U'
+bugfix: internal commands did not check length so, for example, sending helpaxfgqerg was recognised as a help command
+Added PRINT_LINE_DELAY macro - if defined at the start of a sketch it will insert the defined marco before a line of text is printed - used to slow down transmission when sending many lines of data so a slow reciever can handle it.
+Added a defaultHandler function pointer that will be called whenever an unknown command is found. The user can now attach their own command handler for dealing with unrecognised commands. If not specified, the internal handler will be used.
+Added a method that returns the number of items in the command list.
+Added a method to return a String with the command help text for a specified item in the command list.
+Added a method that returns the number of items in the internal command list.
+Added a method to return a String with the command and help text for a specified item in the internal command list.
+Added a hide Internal Commands bit to prevent internal commands being displayed in help.
+Added an enable internal commands bit to stop internal commands from working.
+Added getString() method to extract sequential strings seperated by a space or special delimiter
+Added a countItems method to return the number of items in the payload. An idem is defined as a string with a space or delimChar at each end (or an end of line char)
+Renamed the eocChar into a delimChar, it is used as a delimiter between any items in the payload alongside the space character
+Added methods to set the delimChar and endOfLine char.
+Added two bit StreamType code to indicate if the attached stream is a serial port, file or web - this is to allow handlers to interrogate the Commander object calling the handler to adjust its response for that stream, for example by adding formatting to a response.
+Methods containsOn and containsTrue now work for both lower case and capitals.
+Updated the basic example sketch to demonstrate countItems() and getString() methods. These count and display all items in the payload.
+Added an HTML web server example using Commander to deliver formatted web pages.
+Removed updatePending() because this function is prformed within update()
+
+Utilities:
+Added a function to convert an HTTP GET line to a command string - It finds the start and end of the GET message and converts and / or + chars to spaces. A line with "GET /help HTTP/1.1" will return a string containing "help" or "GET /setLED/on HTTP/1.1" will return "setLED on" The function can return a default string if nothing is found.
+String GET_CommandString(String serverGetLine, String defaultString)
+
+Commander 1.3.2:
+Changed getInt() to a template method so it will work for any int type (byte, long, unsigned etc)
 
 Commander 1.3.1:
 Restructured directories so everything is in src
@@ -13,4 +43,4 @@ Minor edits to readme
 Changes to how help is formatted
 
 Commander 1.2.3:
-Added enable bit for help system and query command. The help system an now be disabled if required.
+Added enable bit for help system and query command. The help system can now be disabled if required.

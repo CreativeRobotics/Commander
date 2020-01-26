@@ -58,11 +58,7 @@ void setup() {
   
   
   cmd.begin(&serverClient, masterCommands, numOfMasterCmds);
-  cmd.enablePrompt(); //enable the command prompt
-  //cmd.echo(true);     //Echo incoming characters to the output port
-  cmd.enableErrors(); //error messages are enabled - it will tell us if we issue any unrecognised commands
-  //while(!Serial){;}
-  //Serial.println("Hello: Type 'help' to get help");
+  cmd.commandPrompt(ON);; //enable the command prompt
   cmd.printCommandPrompt();
 }
 
@@ -77,9 +73,7 @@ void loop() {
         serverClient = server.available();
         if (!serverClient) Serial.println("available broken");
         Serial.print("New client: ");
-        Serial.print(i); Serial.print(' ');
         Serial.println(serverClient.remoteIP());
-        break;
       }
     }
     //check clients for data

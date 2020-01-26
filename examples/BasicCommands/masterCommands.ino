@@ -1,15 +1,16 @@
 //All commands for 'master'
 //COMMAND ARRAY ------------------------------------------------------------------------------
 const commandList_t masterCommands[] = {
-  {"hello",      helloHandler,    "hello"},
-  {"get int",    getIntHandler,   "get an int"},
-  {"set int",    setIntHandler,   "set an int"},
-  {"get float",  getFloatHandler, "get a float"},
-  {"set float",  setFloatHandler, "set a float"},
-  {"myint",      setIntHandler,   "try myint=23"},
-  {"myfloat",    setFloatHandler, "try myfloat=23.5"},
-  {"set ints",   getIntsHandler,   "set up to four ints"},
-  {"set floats",   getFloatsHandler,   "set up to four floats"},
+  {"hello",       helloHandler,     "hello"},
+  {"get int",     getIntHandler,    "get an int"},
+  {"set int",     setIntHandler,    "set an int"},
+  {"get float",   getFloatHandler,  "get a float"},
+  {"set float",   setFloatHandler,  "set a float"},
+  {"myint",       setIntHandler,    "try myint=23"},
+  {"myfloat",     setFloatHandler,  "try myfloat=23.5"},
+  {"set ints",    setIntsHandler,   "set up to four ints"},
+  {"set floats",  setFloatsHandler, "set up to four floats"},
+  {"set strings", setStringsHandler,"set up to four Strings"},
 };
  /*
   * This needs to be passed to the commander object so it knows how big the array of commands is, but this happens earlier in setup().
@@ -61,9 +62,15 @@ bool setFloatHandler(Commander &Cmdr){
   return 0;
 }
 
-bool getIntsHandler(Commander &Cmdr){
+bool setIntsHandler(Commander &Cmdr){
   //create an array to store any values we find
   int values[4] = {0,0,0,0};
+
+  int itms = Cmdr.countItems();
+  Cmdr.print("There are ");
+  Cmdr.print(itms);
+  Cmdr.println(" items in the payload");
+  
   for(int n = 0; n < 4; n++){
     //try and unpack an int, if it fails there are no more left so exit the loop
     if(Cmdr.getInt(values[n])){
@@ -81,20 +88,41 @@ bool getIntsHandler(Commander &Cmdr){
   return 0;
 }
 
-bool getFloatsHandler(Commander &Cmdr){
+bool setFloatsHandler(Commander &Cmdr){
   float values[4] = {0.0,0.0,0.0,0.0};
-  int n = 0;
-  for(n = 0; n < 4; n++){
+  int itms = Cmdr.countItems();
+  Cmdr.print("There are ");
+  Cmdr.print(itms);
+  Cmdr.println(" items in the payload");
+  
+  for(int n = 0; n < 4; n++){
     if(Cmdr.getFloat(values[n])){
       Cmdr.print("unpacked ");
       Cmdr.println(values[n]);
     }else break;
   }
   Cmdr.println("Array contents after processing:");
-  for(n = 0; n < 4; n++){
+  for(int n = 0; n < 4; n++){
     Cmdr.print(n);
     Cmdr.print(" = ");
     Cmdr.println(values[n]);
+  }
+  return 0;
+}
+
+bool setStringsHandler(Commander &Cmdr){
+  String myString = "";
+  int itms = Cmdr.countItems();
+  Cmdr.print("There are ");
+  Cmdr.print(itms);
+  Cmdr.println(" items in the payload");
+  for(int n = 0; n < itms; n++){
+    if(Cmdr.getString(myString)){
+      Cmdr.print("String ");
+      Cmdr.print(n);
+      Cmdr.print(" = ");
+      Cmdr.println(myString);
+    }else Cmdr.println("Operation failed");
   }
   return 0;
 }

@@ -41,8 +41,8 @@ bool changeDirectory(Commander &Cmdr){
   if(SD.chdir( Cmdr.getPayloadString().c_str() )){
     Cmdr.print("In: ");
     Cmdr.println(Cmdr.getPayloadString());
-    if(Cmdr.getPayloadString() == "/" ) cmd.commanderName = cmdName + Cmdr.getPayloadString();
-    else cmd.commanderName = cmdName + " /" + Cmdr.getPayloadString();
+    if(Cmdr.getPayloadString() == "/" ) Cmdr.commanderName = cmdName + Cmdr.getPayloadString();
+    else Cmdr.commanderName = cmdName + " /" + Cmdr.getPayloadString();
   }else Cmdr.println("Error - no such directory");
   return 0;
 }

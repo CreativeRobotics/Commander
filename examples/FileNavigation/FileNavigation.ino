@@ -32,7 +32,7 @@ void setup() {
   //Attach the outgoing port to Serial
   //Attach the command list and the list size variable
   cmd.begin(&Serial, &Serial,  masterCommands, numOfMasterCmds);
-  cmd.enablePrompt();
+  cmd.commandPrompt(ON);
   cmd.commanderName = cmdName + "/";
   cmd.echo(true);
   //cmd.println("Files on card:");

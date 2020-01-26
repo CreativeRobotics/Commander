@@ -61,14 +61,16 @@ void setup() {
 void loop() {
   //If the file was opened, read it and finsh
   if(fileOpen){
+    Serial.println("---------------------------------------");
     readFile();
     myFile.close();
     fileOpen = false;
+    Serial.println("---------------------------------------");
     Serial.println("File read finished");
     //Now redirect commander to the serial port so we can type commands in there:
     cmd.attachInputPort(&Serial);
     //Enable command prompts and echo characters
-    cmd.enablePrompt();
+    cmd.commandPrompt(ON);
     cmd.echo(true);
     //Now print out te prompt with a message
     cmd.println("You have control - Enter a command");
@@ -81,7 +83,7 @@ void loop() {
 void readFile(){
   //Call update for as long as there are still characters left to read
   //cmd will return 1 when it handles a command but there is more in the buffer and 0 when it reaches the end of the file
-  while(cmd.update()){;}
+  while(cmd.update()){delay(10);}
   //If there is no newline at the end of the file then any command on the last line won't be handled
   //Add a newline to the buffer and handle any commands found there
   cmd.endLine();

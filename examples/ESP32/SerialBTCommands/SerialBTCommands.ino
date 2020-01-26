@@ -25,21 +25,11 @@ void setup() {
   Serial.println("The device started, now you can pair it with bluetooth!");
   
   cmd.begin(&SerialBT, masterCommands, numOfMasterCmds);
-  cmd.enablePrompt(); //enable the command prompt
-  //cmd.echo(true);     //Echo incoming characters to the output port
-  cmd.enableErrors(); //error messages are enabled - it will tell us if we issue any unrecognised commands
-  //while(!Serial){;}
-  //Serial.println("Hello: Type 'help' to get help");
+  cmd.commandPrompt(ON);; //enable the command prompt
   cmd.printCommandPrompt();
 }
 
 void loop() {
   cmd.update();
-  /*if (Serial.available()) {
-    SerialBT.write(Serial.read());
-  }
-  if (SerialBT.available()) {
-    Serial.write(SerialBT.read());
-  }*/
   delay(20);
 }

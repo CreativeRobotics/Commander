@@ -1,4 +1,4 @@
-/* Prefab commands for SDFat
+/* Prefab command example
  *  Prefabs are command sets and command handlers that have been pre defined for specific scenarios
  *  This demonstrates the FileNavigator prefab that impliments an SDFat file navigation system.
  *  The prefab is implimented as a sub command and can be invoked with the SD command.
@@ -10,7 +10,7 @@
  *  The Arduino Serial terminal does NOT allow you to send this character and so you cannot rerminate the file download when using the Arduino Serial terminal.
  */
 #include <Commander.h>
-#include <prefabs\SDCards\PrefabFileNavigator.h>
+#include <PrefabFileNavigator.h>
 
 #include <SPI.h>
 SdFat SD;

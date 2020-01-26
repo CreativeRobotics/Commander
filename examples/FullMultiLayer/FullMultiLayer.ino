@@ -42,7 +42,7 @@ void setup() {
   getcmd.commanderName = "get commander";
   setcmd.commanderName = "set commander";
   //enable command prompts for the master command object
-  masterCmd.enablePrompt();
+  masterCmd.commandPrompt(ON);
   //enable multi commander mode for all command objects
   masterCmd.multiCommander(true);//enable multicommander so command prompts work properly with multiple commander objects
   getcmd.multiCommander(true);//enable multicommander so command prompts work properly with multiple commander objects
@@ -52,6 +52,7 @@ void setup() {
   masterCmd.echo(true);
   //wait for a serial port to open
   while(!Serial){;}
+  Serial.println("Hello: Type 'help' to get help");
   //print the command prompt
   masterCmd.printCommandPrompt();
 }

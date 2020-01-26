@@ -71,7 +71,7 @@ bool setPassHandler(Commander &Cmdr){
 }
 
 bool toggleHLHandler(Commander &Cmdr){
-  Cmdr.setHardLock(!Cmdr.hardLockEnabled());
-  Cmdr.hardLockEnabled() ? Cmdr.println("Hard Locking enabled") : Cmdr.println("Hard locking disabled");
+  Cmdr.setLockType(!Cmdr.getLockType());
+  Cmdr.getLockType() ? Cmdr.println("Hard Locking enabled") : Cmdr.println("Hard locking disabled");
   return 0;
 }

@@ -24,9 +24,10 @@ void setup() {
   Serial.begin(115200);
   cmd.begin(&Serial, masterCommands, numOfMasterCmds);
   cmd.commanderName = "Cmd";
-  cmd.enablePrompt();
+  cmd.commandPrompt(ON);
   cmd.echo(true);
   while(!Serial){;}
+  Serial.println("Hello: Type 'help' to get help");
   cmd.printCommandPrompt();
 }
 

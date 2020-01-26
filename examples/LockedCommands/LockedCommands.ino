@@ -20,9 +20,9 @@ String myPassphrase = "default";
 void setup() {
   Serial.begin(115200);
   cmd.begin(&Serial, masterCommands, numOfMasterCmds);
-  cmd.enablePrompt(); //enable the command prompt
+  cmd.commandPrompt(ON); //enable the command prompt
   cmd.echo(true);     //Echo incoming characters to theoutput port
-  cmd.enableErrors(); //error messages are enabled - it will tell us if we issue any unrecognised commands
+  cmd.errorMessages(ON); //error messages are enabled - it will tell us if we issue any unrecognised commands
   cmd.setPassPhrase(myPassphrase);
   while(!Serial){;}
   Serial.println("Hello: Type 'help' to get help");
