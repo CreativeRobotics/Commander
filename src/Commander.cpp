@@ -692,8 +692,8 @@ void Commander::handleComment(){
 bool  Commander::processBuffer(int dataByte){
   if(dataByte == -1) return false; //no actual data to process
 	if(commandState.bit.bufferState == BUFFER_WAITING_FOR_START){
-		//if you are waiting for the start of a line, and get an end of line character, ignore it and return
-		if(isEndOfLine(dataByte)) return false;
+		//if you are waiting for the start of a line, and get an end of line character, or a CR character and these should be ignored, ignore it and return
+		if(isEndOfLine(dataByte) || (dataByte == '\r' && ports.settings.bit.stripCR) ) return false;
     if(dataByte == reloadCommandChar){
 			commandState.bit.newLine = true;
 			if(ports.settings.bit.echoTerminal) ports.outPort->print(bufferString); //print the old buffer

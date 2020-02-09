@@ -3,6 +3,7 @@ Commander changelog
 
 Commander 2.1.0
 
+Fixed a bug where CR was not ignored on a blank line.
 Fixed a bug where getString was not recognising the custom delimiter.
 Changes streamType_t enum so undefines streamtype is zero.
 Expanded the settings register to 32 bits and moved autoFormat and locked bits from state register to settings register.
