@@ -16,7 +16,6 @@ void setup() {
   cmd.commandPrompt(ON); //enable the command prompt
   cmd.echo(true);     //Echo incoming characters to theoutput port
   cmd.errorMessages(ON); //error messages are enabled - it will tell us if we issue any unrecognised commands
-
   while(!Serial){;}
   Serial.println("Hello: Type 'help' to get help");
   cmd.printCommandPrompt();

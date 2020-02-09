@@ -19,6 +19,7 @@ Commander cmd;
 //Variables we can set or get
 int myInt = 0;
 float myFloat = 0.0;
+
 //SETUP ---------------------------------------------------------------------------
 void setup() {
   Serial.begin(115200);

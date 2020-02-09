@@ -1,6 +1,22 @@
 Commander changelog
 (Changelog started at 1.2.3)
 
+Commander 2.1.0
+
+Fixed a bug where getString was not recognising the custom delimiter.
+Changes streamType_t enum so undefines streamtype is zero.
+Expanded the settings register to 32 bits and moved autoFormat and locked bits from state register to settings register.
+Removed PRINT_LINE_DELAY and replaced with setPrintDelay(uint8_t dTime) uint8_t getPrintDelay() and printDelay(bool enable) to allow a delay from 0-255 millis after a line is printed. Default is off with zero time.
+Changed commandListEntries to a uint8_t - Command lists must have no more than 256 items!
+Fixed a bug where countItems() will return 1 if there are no items.
+Added a benchmarking system using macros.
+Added a streamMode option so raw data streaming can be supported.
+Changed start stop and set stream method names to Streaming (instead of stream) to remove ambiguity over methods relating to the Stream objects
+Added setStreamingMode() and getStreamingMode() methods.
+Removed the isCommandStart() and isCommandChar() methods and rearranged the command buffer state machine to use one bit. Commands can now start with any ASCII character.
+Removed redundant settings register values.
+Renames streamMode and streamOn bits as dataStreamMode and dataStreamOn.
+
 Commander 2.0.0
 
 Re-worked several methods and method names and probably broke several things, for example setLockType(bool) replaces enableHardLock(), commandPrompt(bool) replaces enablePrompt() and disablePrompt(). Setting parameters like these are now all done by passing an argument, and macros for ON and OFF are defined.
@@ -22,7 +38,7 @@ Added two bit StreamType code to indicate if the attached stream is a serial por
 Methods containsOn and containsTrue now work for both lower case and capitals.
 Updated the basic example sketch to demonstrate countItems() and getString() methods. These count and display all items in the payload.
 Added an HTML web server example using Commander to deliver formatted web pages.
-Removed updatePending() because this function is prformed within update()
+Removed updatePending() because this function is performed within update()
 
 Utilities:
 Added a function to convert an HTTP GET line to a command string - It finds the start and end of the GET message and converts and / or + chars to spaces. A line with "GET /help HTTP/1.1" will return a string containing "help" or "GET /setLED/on HTTP/1.1" will return "setLED on" The function can return a default string if nothing is found.

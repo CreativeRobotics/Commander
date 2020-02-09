@@ -63,7 +63,9 @@ containsOn	KEYWORD2
 setCommentChar	KEYWORD2
 setReloadChar	KEYWORD2
 setEndOfLineChar	KEYWORD2
-echo	KEYWORD2
+setPrintDelay KEYWORD2
+printDelay KEYWORD2
+echo KEYWORD2
 printComments	KEYWORD2
 echoToAlt	KEYWORD2
 copyRepyAlt	KEYWORD2
@@ -82,6 +84,7 @@ setPortSettings	KEYWORD2
 getInt	KEYWORD2
 getFloat	KEYWORD2
 getDouble	KEYWORD2
+countItems KEYWORD2
 printCommandList	KEYWORD2
 printCommanderVersion	KEYWORD2
 printAlt	KEYWORD2
