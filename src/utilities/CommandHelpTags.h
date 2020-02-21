@@ -13,24 +13,54 @@ By default, no tag should result in any GUI generator producing a button with a 
 The [X] tag explicitly marks a command as having no arguments and therefore any GUI element should have no text field.
 Tags can be added together, for example [TS] indicates a toggle for streaming data.
 */
+#ifndef CommandHelpTags_h
+#define CommandHelpTags_h
+
+
+#include <Arduino.h>
+#include <string.h>
+
+#define CMD_HIDE_HELP				'-'
+
+#define CMD_ARG_START_BRACKET '['
+#define CMD_ARG_END_BRACKET 	']'
 //No arguments for this command
-#define CMD_ARG_NONE       X
+#define CMD_ARG_NONE       	'X'
 //n Int arguments (defaults to 1 if no number is included with the tag)
-#define CMD_ARG_INT        I
+#define CMD_ARG_INT        	'I'
 //n Float arguments (defaults to 1 if no number is included after the tag)
-#define CMD_ARG_FLOAT      F
+#define CMD_ARG_FLOAT      	'F'
 //String argument. A number after the string indicates the number of words
-#define CMD_ARG_STRING     S
+#define CMD_ARG_STRING     	'S'
 //Binary argument consisting of the word 'true' or 'false'
-#define CMD_ARG_BINARY     B
+#define CMD_ARG_BINARY     	'B'
 //Binary argument consisting of the word 'on' or 'off'
-#define CMD_ARG_ONOFF      O
-//Hide this command from any auto generated GUI
-#define CMD_ARG_HIDE			 H
+#define CMD_ARG_ONOFF      	'O'
 //Command will toggle a setting when issued
-#define CMD_ARG_TOGGLE     T
+#define CMD_ARG_TOGGLE     	'T'
 //Command is associated with streaming data
-#define CMD_ARG_DATASTREAM D
+#define CMD_ARG_DATASTREAM 	'D'
 
 
 
+typedef enum cmdArgType_t{
+	CMD_NO_TAGS = 0,
+	CMD_NO_ARGS,
+	CMD_INT,
+	CMD_FLOAT,
+	CMD_STRING,
+	CMD_BOOL,
+	CMD_ONOFF,
+	CMD_TOGGLE,
+	CMD_DATASTREAM,
+} cmdArgType_t;
+
+//data strtucture to hold an argument type
+typedef struct cmdArgs_t{
+	uint8_t numberOfArguments = 0;
+	cmdArgType_t argumentType = CMD_NO_TAGS;
+}cmdArgs_t;
+
+bool getCommandArgCode(char helpText[], cmdArgs_t commandArguments);
+
+#endif //CommandHelpTags_h

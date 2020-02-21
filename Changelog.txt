@@ -1,5 +1,22 @@
 Commander changelog
 (Changelog started at 1.2.3)
+Commander 2.2.0
+
+Optimised the command search. The command search used to use the String method startsWith(). This has been replaced with a new algorithm:
+- When checking each command against the buffer it first checks if the buffer is too short (shorter than the command being checked) and returns false if it is.
+- If the command is a single character it performs a specific test and returns true if it matches the buffer, and has a valid end of command char (' ', end of line or delim)
+- Otherwise it checks the last command character against the buffer, then the first, and works its way in until it reaches the middle.
+- It returns true if it reaches the middle with all characters matching.
+- It returns false the moment a character fails to match.
+- If it returns true for a match of that command against the buffer, it logs the index and the command length and keeps searching.
+- If it finds another match against a longer command it updates the index.
+- For internal commands, a switch statement was implimented and optimised to check each item as efficiently as possible. This also increased speed.
+-- This reduced the time to search significantly, for example command match of 227 microsecs was reduced to 58 microsecs in a 16 item command list.
+-- Theory: The probablility of the last and first characters of a command and the buffer matching should be much lower than for the first and second or third (etc). For example commands 'set int 1234' and 'set float 1.2' match the first four characters but not the last character, so by checking the last character first they are rejected on the first iteration rather than the fourth.
+Swapped query and help in internal commands so they can be searched faster
+Removed enable command from internal commands because ... its stupid, and you should use locks instead.
+Moved printing of reload and comment characters so they are visible even if internal commands are not.
+Added a method of hiding commands from the command menu. Putting the '-' character at the start of the help text will prevent the command from printing.
 
 Commander 2.1.0
 

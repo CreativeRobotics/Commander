@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 #include <string.h>
+#include "utilities\CommandHelpTags.h"
 
 class Commander;
 
@@ -107,7 +108,7 @@ typedef struct portSettings_t{
 #define CUSTOM_COMMAND 										  -2
 #define INTERNAL_COMMAND 										-1
 #define COMMENT_COMMAND 										-3
-#define INTERNAL_COMMAND_ITEMS 							8
+#define INTERNAL_COMMAND_ITEMS 							7
 
 #define COMMANDER_DEFAULT_REGISTER_SETTINGS 0b00000000000000000100010111011000
 //Default settings:
@@ -398,6 +399,7 @@ public:
 	#if defined BENCHMARKING_ON
 		unsigned long benchmarkStartTime1 = 0, benchmarkStartTime2 = 0, benchmarkStartTime3 = 0, benchmarkStartTime4 = 0;
 		unsigned long benchmarkTime1 = 0, benchmarkTime2 = 0, benchmarkTime3 = 0, benchmarkTime4 = 0;
+		int benchmarkCounter = 0;
 	#endif
 	
 private:
@@ -426,6 +428,7 @@ private:
 	void resetBuffer();
 	int  matchCommand();
 	bool checkCommand(uint16_t cmdIdx);
+	bool checkInternalCommand(uint16_t cmdIdx);
 	int  handleInternalCommand(uint16_t internalCommandIndex);
 	bool handleCustomCommand();
 	bool tryGet();
@@ -437,6 +440,7 @@ private:
 	bool isTextDelimiter(char ch);
 	bool isNumeral(char ch);
 	bool isEndOfLine(char dataByte);
+	bool isEndOfCommand(char dataByte);
 	bool isNewline(char var) {		return (var == '\n') ? true : false;}
 	bool isNewline(int var) {			return (var == '\n') ? true : false;}
 	//bool isNewline(char var[]) {	return false;} //fix this so it looks for a newline at the end of the string ...

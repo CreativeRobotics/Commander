@@ -6,11 +6,13 @@ const commandList_t masterCommands[] = {
   {"set int",     setIntHandler,    "set an int"},
   {"get float",   getFloatHandler,  "get a float"},
   {"set float",   setFloatHandler,  "set a float"},
+  {"hidden1",     hiddenHandler,    "-Command hidden from help"},
   {"myint",       setIntHandler,    "try myint=23"},
   {"myfloat",     setFloatHandler,  "try myfloat=23.5"},
   {"set ints",    setIntsHandler,   "set up to four ints"},
   {"set floats",  setFloatsHandler, "set up to four floats"},
   {"set strings", setStringsHandler,"set up to four Strings"},
+  {"hidden2",     hiddenHandler,    "-Command hidden from help"},
 };
  /*
   * This needs to be passed to the commander object so it knows how big the array of commands is, but this happens earlier in setup().
@@ -34,7 +36,6 @@ bool helloHandler(Commander &Cmdr){
   Cmdr.print(Cmdr.bufferString);
   return 0;
 }
-
 bool getIntHandler(Commander &Cmdr){
   Cmdr.print("myInt = ");
   Cmdr.println(myInt);
@@ -124,5 +125,10 @@ bool setStringsHandler(Commander &Cmdr){
       Cmdr.println(myString);
     }else Cmdr.println("Operation failed");
   }
+  return 0;
+}
+
+bool hiddenHandler(Commander &Cmdr){
+  Cmdr.println("This command is hidden from the help system");
   return 0;
 }

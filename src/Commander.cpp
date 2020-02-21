@@ -3,11 +3,10 @@
 //Initialise the array of internal commands with the constructor
 Commander::Commander(): internalCommandArray ({ "U",
 																								"X",
-																								"help",
 																								"?",
+																								"help",
 																								"echo",
 																								"echox",
-																								"enable",
 																								"errors"}){
 	bufferString.reserve(bufferSize);
 	ports.settings.reg = COMMANDER_DEFAULT_REGISTER_SETTINGS;
@@ -16,11 +15,10 @@ Commander::Commander(): internalCommandArray ({ "U",
 //==============================================================================================================
 Commander::Commander(uint16_t reservedBuffer): internalCommandArray ({ 	"U",
 																																				"X",
-																																				"help",
 																																				"?",
+																																				"help",
 																																				"echo",
 																																				"echox",
-																																				"enable",
 																																				"errors"}){
 	//bufferString.reserve(bufferSize);
 	bufferSize = reservedBuffer;
@@ -102,6 +100,9 @@ bool Commander::update(){
 			println( ((float)benchmarkTime3)/1000000.0, 6);
 			print("Time (Handler):\t\t");
 			println( ((float)benchmarkTime4)/1000000.0, 6);
+			print("Counter:\t\t");
+			println( benchmarkCounter );
+			benchmarkCounter = 0;
 		}
 	#endif
 	return (bool)ports.inPort->available(); //return true if any bytes left to read
@@ -740,12 +741,10 @@ void Commander::resetBuffer(){
 //==============================================================================================================
 //return the index of the command, or handle the internal commands
 int Commander::matchCommand(){
-	
 	#if defined BENCHMARKING_ON
 		benchmarkStartTime2 = micros();
 		benchmarkStartTime3 = micros();
-	#endif
-  //loop through the command list and see if it appears in the String
+	#endif  //loop through the command list and see if it appears in the String
 	int indexOfLongest = -1;
 	uint8_t lastLength = 0;
 	//first check comment char
@@ -756,7 +755,6 @@ int Commander::matchCommand(){
 		#endif
 		return COMMENT_COMMAND;
 	}
-	
 	//see if it starts with an int - if so then use the number function
 	if( isNumber(bufferString) ) {
 		#if defined BENCHMARKING_ON
@@ -765,7 +763,6 @@ int Commander::matchCommand(){
 		#endif
 		return CUSTOM_COMMAND;
 	}
-	
 	//Scan the command array for a match
 	#if defined BENCHMARKING_ON
 		benchmarkStartTime3 = micros();
@@ -791,10 +788,8 @@ int Commander::matchCommand(){
 		benchmarkStartTime3 = micros();
 	#endif
 	for(uint16_t n = 0; n < INTERNAL_COMMAND_ITEMS; n++){
-		if(bufferString.startsWith( internalCommandArray[n] )){
-			uint8_t len = getInternalCmdLength(internalCommandArray[n]);
-			if( isTextDelimiter(bufferString.charAt( len )) || bufferString.charAt( len ) == '\n'){
-				#if defined BENCHMARKING_ON
+		if(checkInternalCommand(n)){
+			#if defined BENCHMARKING_ON
 					benchmarkTime3 = micros()-benchmarkStartTime3;
 					benchmarkTime2 = micros()-benchmarkStartTime2;
 					benchmarkStartTime4 = micros();
@@ -803,7 +798,6 @@ int Commander::matchCommand(){
 					return rtv;
 				#endif
 				return handleInternalCommand(n);
-			}
 		}
 	}
 	#if defined BENCHMARKING_ON
@@ -817,12 +811,59 @@ int Commander::matchCommand(){
 //return true if the command is valid
 bool Commander::checkCommand(uint16_t cmdIdx){
 	//see if the incoming command matches the command in the array index cmdIdx
-	if(bufferString.startsWith( commandList[cmdIdx].commandString ) == false) return false; //no match
-	if( bufferString.charAt( commandLengths[cmdIdx] ) == ' ' ) return true; //space after command
-	if( bufferString.charAt( commandLengths[cmdIdx]-1 ) == ' ' ) return true; //command includes a trailing space
-	if( isEndOfLine( bufferString.charAt( commandLengths[cmdIdx] ) ) ) return true; ////end of line after command
-	if(bufferString.charAt( commandLengths[cmdIdx] ) == delimChar) return true; //alternative end of command character detected (e.g the '=' char)
+	#if defined BENCHMARKING_ON
+		benchmarkCounter++;
+	#endif
+	
+	if(bufferString.length() < commandLengths[cmdIdx]+1) return false; //no match if the buffer is shorter than the command+1 (buffer will have the end of line char)
+	if(commandLengths[cmdIdx] == 1){
+		//This command was a single char, if it is a match then return true if the next char in the buffer is an end of command char (newline, space or delim)
+		if(bufferString.charAt(0) != commandList[cmdIdx].commandString[0]) return false;
+		return isEndOfCommand(bufferString.charAt(1));
+	}
+	uint8_t y = commandLengths[cmdIdx]-1;
+	for(uint8_t x = 0; x < commandLengths[cmdIdx]; x++){
+		if(bufferString.charAt(y) != commandList[cmdIdx].commandString[y])return false;
+		if(bufferString.charAt(x) != commandList[cmdIdx].commandString[x])return false;
+		y--;
+		if(x==y || x+1 == y) return ((bufferString.charAt(y) == commandList[cmdIdx].commandString[y]) & isEndOfCommand( bufferString.charAt(commandLengths[cmdIdx]) ));
+	}
 	return false; //failed check
+}
+
+
+//==============================================================================================================
+bool Commander::checkInternalCommand(uint16_t cmdIdx){
+	//see if the incoming command matches the command in the internal index cmdIdx
+	#if defined BENCHMARKING_ON
+		benchmarkCounter++;
+	#endif
+	/*	"U",	"X",	"?",	"help",	"echo",	"echox",	"errors"}	*/
+	
+	switch(cmdIdx){
+	case 0:
+		if(bufferString.charAt(0) != 'U') return false;
+		return isEndOfCommand(bufferString.charAt(1));
+	case 1:
+		if(bufferString.charAt(0) != 'X') return false;
+		return isEndOfCommand(bufferString.charAt(1));
+	case 2:
+		if(bufferString.charAt(0) != '?') return false;
+		return isEndOfCommand(bufferString.charAt(1));
+	case 3:
+		if(bufferString.charAt(0) != 'h') return false;
+		return isEndOfCommand(bufferString.charAt(4));
+	case 4:
+		if(bufferString.charAt(3) != 'o') return false;
+		return isEndOfCommand(bufferString.charAt(4));
+	case 5:
+		if(bufferString.charAt(4) != 'x') return false;
+		return isEndOfCommand(bufferString.charAt(5));
+	case 6:
+		if(bufferString.charAt(5) != 's') return false;
+		return isEndOfCommand(bufferString.charAt(6));
+	}
+	return 0;
 }
 //==============================================================================================================
 
@@ -843,7 +884,7 @@ void Commander::printDiagnostics(){
 
 int Commander::handleInternalCommand(uint16_t internalCommandIndex){
 	switch(internalCommandIndex){
-		case 0: //help
+		case 0: //unlock
 			unlock();
 			if(ports.settings.bit.errorMessagesEnabled) println(unlockMessage);
 			//Lock Command printCommandList();
@@ -853,11 +894,11 @@ int Commander::handleInternalCommand(uint16_t internalCommandIndex){
 			if(ports.settings.bit.errorMessagesEnabled) println(lockMessage);
 			//Unlock Command printCommanderVersion();
 			break;
-		case 2: //help
-			if( ports.settings.bit.helpEnabled ) printCommandList();
-			break;
-		case 3: //?
+		case 2: //?
 			if( ports.settings.bit.helpEnabled ) printCommanderVersion();
+			break;
+		case 3: //help
+			if( ports.settings.bit.helpEnabled ) printCommandList();
 			break;
 		case 4: //CMDR echo 
 			ports.settings.bit.echoTerminal = containsOn();
@@ -873,14 +914,7 @@ int Commander::handleInternalCommand(uint16_t internalCommandIndex){
 				ports.settings.bit.echoToAlt ? println("on") : println("off");
 			}
 			break;
-		case 6: //CMDR enable commander
-			ports.settings.bit.commandParserEnabled = containsOn();
-			if(ports.settings.bit.errorMessagesEnabled){
-				print(F("Command parser "));
-				ports.settings.bit.commandParserEnabled ? println("on") : println("off");
-			}
-			break;
-		case 7: //CMDR enable error messages
+		case 6: //CMDR enable error messages
 			ports.settings.bit.errorMessagesEnabled = containsOn();
 			if(ports.settings.bit.errorMessagesEnabled){
 				print(F("Error Messages "));
@@ -955,40 +989,33 @@ bool Commander::isEndOfLine(char dataByte){
   return false;
 }
 
+bool Commander::isEndOfCommand(char dataByte){
+	if(dataByte == endOfLineChar) return true;
+	if(dataByte == ' ') return true;
+	if(dataByte == delimChar) return true;
+  return false;
+}
+
 //==============================================================================================================
 
 
 void Commander::printCommandList(){
 	  //Prints all the commands
   uint8_t n = 0;
-  //int length1 = 0;
 	String cmdLine = " ";
 	cmdLine.concat(commanderName);
 	cmdLine.concat(F(" User Commands:"));
 	println(cmdLine);
-  for(n = 0; n < commandListEntries; n++){
-		//cmdLine = getCommandItem(n);
-		println(getCommandItem(n));
-  }
-	if(!ports.settings.bit.internalCommandsEnabled || !ports.settings.bit.printInternalCommands) return;
-  println(F(" Internal Commands:"));
-	for(n = 0; n < INTERNAL_COMMAND_ITEMS; n++){
-		println(getInternalCommandItem(n));
-		//write('\t');
-    //if(n > 3){
-		//	print(internalCommandArray[n]);
-		//	println(F(" (on/off)"));
-		//}
-		//else println(internalCommandArray[n]);
-  }
+  for(n = 0; n < commandListEntries; n++) if(commandList[n].manualString[0] != CMD_HIDE_HELP) println(getCommandItem(n));
 	print(F(" Reload character: "));
 	println(String(reloadCommandChar));
-	
-	
 	print(F(" Comment character: "));
 	println(String(commentChar));
 	
-  //return 0;
+	if(!ports.settings.bit.internalCommandsEnabled || !ports.settings.bit.printInternalCommands) return;
+  println(F(" Internal Commands:"));
+	for(n = 0; n < INTERNAL_COMMAND_ITEMS; n++) println(getInternalCommandItem(n));
+
 }
 
 //==============================================================================================================
