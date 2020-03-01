@@ -20,7 +20,10 @@ Tags can be added together, for example [TS] indicates a toggle for streaming da
 #include <Arduino.h>
 #include <string.h>
 
+//Hide command when printing help
 #define CMD_HIDE_HELP				'-'
+//Command is chainable
+#define CMD_CHAINABLE		'C'
 
 #define CMD_ARG_START_BRACKET '['
 #define CMD_ARG_END_BRACKET 	']'
@@ -59,6 +62,7 @@ typedef enum cmdArgType_t{
 typedef struct cmdArgs_t{
 	uint8_t numberOfArguments = 0;
 	cmdArgType_t argumentType = CMD_NO_TAGS;
+	bool chainable = false;
 }cmdArgs_t;
 
 bool getCommandArgCode(char helpText[], cmdArgs_t commandArguments);

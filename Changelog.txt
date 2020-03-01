@@ -1,5 +1,32 @@
 Commander changelog
 (Changelog started at 1.2.3)
+
+Commander 3.0.0
+
+Made some major changes under the hood to the way payloads and items are processed including adding support for chaining multiple commands together in a single line:
+
+
+Changed help and query formatting so the comment char appears at the start of every line for help, query and errors.
+Changed delimiter char to a String. The defaults are | = , : \ / plus SPACE and TAB.
+Removed setDelimChar() method.
+Created setDelimiters(String), getDelimiters() and addDelimiter(char) methods.
+Added a method where delims are ignored for items in quotes when using getString.
+Added a settings bit to allow quotes to be ignored.
+Added containsFalse() and containsOff() to compliment ON and TRUE.
+Added public method of reading the dataReadIndex variable. This marks the start of the payload, or any section of the payload that has not been extracted with the getInt, getFloat or getString methods.
+Added chain() method, breakChain(), autoChain settings bit and autoChain() methods to allow commands to be chained on a single line. Unless set to autoChain mode, if chain() is called at the end of a handler, Commander will find the start of the next item in the payload (anything left over after calls to getInt etc), and reload everything from that point into the buffer as a pending command for processing on the next call to update. If autochaining is enables, then placing breakChain at the end of a handler will prevent any other commands in that chain from being handled.
+Chaining will work on any user command provided that any payload for that command has been extracted using the getInt, getFloat or getString methods. These methods will place the dataReadIndex at the end of the commands payload, and before the start of any chained command.
+Setting autoChain(true) will automatically allow all commands to be chained.
+A chaining state bit can be used to surpress the unrecognised command handler so if chained command does not turn out to be a valid command it gets ignored instead of generating an error.
+Comment characters break chains, so comments can be left at the end of a command line, for example in command files.
+Added autoChainSurpressErrors bit and methods to control if error messages are displayed when chaining commands.
+Added quickSet and get methods for Strings.
+Chains will break when a quickset or quickget command is found - this prevents chaining errors.
+Added a help tag [C] that indicates if the command is chainable.
+Fixed a lock bug printing the unlock message when it didn't unlock.
+Fixed internal commands recognising bad commands due to sloppy optimisation.
+Inproved contaonsOn,off,true and false so they only with for recognisable items, not when the characters appear in a phrase. They now check the next item in the payload, but do not move dataReadIndex.
+
 Commander 2.2.0
 
 Optimised the command search. The command search used to use the String method startsWith(). This has been replaced with a new algorithm:

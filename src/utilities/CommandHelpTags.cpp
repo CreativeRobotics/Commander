@@ -48,19 +48,12 @@ bool getCommandArgCode(char helpText[], cmdArgs_t commandArguments){
 			commandArguments.argumentType = CMD_DATASTREAM;
 			break;
 	}
-	if(lastBracket == firstBracket+2){
-		//there are no numbers after the tag so the number of arguments defaults to 1
-		commandArguments.numberOfArguments = 1;
-	}else	if( !helpText[firstBracket+2] < 48 || helpText[firstBracket+2] > 57 ){
-		//there are no numbers after the tag so the number of arguments defaults to 1
-		commandArguments.numberOfArguments = 1;
-	}else{
-		//only two numbers max - so arguments cannot be more than 99
-		uint8_t value = 0;
-		value = helpText[firstBracket+2]-48;
-		if(helpText[firstBracket+3] < 48 || helpText[firstBracket+3] > 57 ) value = (value*10) + (helpText[idx]-48);
-		commandArguments.numberOfArguments = value;
+	commandArguments.numberOfArguments = 1;
+	if( helpText[firstBracket+2] > 47 && helpText[firstBracket+2] < 58 ){
+		commandArguments.numberOfArguments = helpText[firstBracket+2] -48 ;
+		if(helpText[firstBracket+3] < 48 || helpText[firstBracket+3] > 57 ) commandArguments.numberOfArguments = (commandArguments.numberOfArguments*10) + (helpText[idx]-48);
 	}
+	if( helpText[lastBracket] == CMD_CHAINABLE ) commandArguments.chainable = true;
 	return true;
 }
 

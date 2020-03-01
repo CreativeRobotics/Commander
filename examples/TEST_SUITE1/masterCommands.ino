@@ -1,7 +1,10 @@
 //All commands for 'master'
 //COMMAND ARRAY ------------------------------------------------------------------------------
+
 const commandList_t masterCommands[] = {
   {"hello",       helloHandler,     "hello"},
+  {"set",         setHandler,       "Quick set commands. Help: \"set help\""},
+  {"get",         getHandler,       "Quick get commands. Help: \"get help\""},
   {"get int",     getIntHandler,    "get an int"},
   {"set int",     setIntHandler,    "set an int"},
   {"get float",   getFloatHandler,  "get a float"},
@@ -14,6 +17,7 @@ const commandList_t masterCommands[] = {
   {"set strings", setStringsHandler,"set up to four Strings"},
   {"hidden2",     hiddenHandler,    "-Command hidden from help"},
 };
+
  /*
   * This needs to be passed to the commander object so it knows how big the array of commands is, but this happens earlier in setup().
   * This has already been forward declared before setup() so the compiler knows it exists
@@ -37,6 +41,33 @@ bool helloHandler(Commander &Cmdr){
   //Cmdr.printDiagnostics();
   return 0;
 }
+
+bool setHandler(Commander &Cmdr){
+  //quickget function
+  //Call quickSetHelp() first to handle any help command
+  Cmdr.quickSetHelp();
+  if( Cmdr.quickSet("int1",   myInt1) )   Cmdr.println("int1 set to " + String(myInt1));
+  if( Cmdr.quickSet("int2",   myInt2) )   Cmdr.println("int2 set to " + String(myInt2));
+  if( Cmdr.quickSet("float1", myFloat1) ) Cmdr.println("float1 set to " + String(myFloat1));
+  if( Cmdr.quickSet("float2", myFloat2) ) Cmdr.println("float2 set to " + String(myFloat2));
+  if( Cmdr.quickSet("str1", myString1) ) Cmdr.println("str1 set to " + String(myString1));
+  if( Cmdr.quickSet("str2", myString2) ) Cmdr.println("str2 set to " + String(myString2));
+  return 0;
+}
+bool getHandler(Commander &Cmdr){
+  //quickset function
+  //Call quickSetHelp() first to handle any help command
+  Cmdr.quickSetHelp();
+  Cmdr.quickGet("int1",   myInt1);
+  Cmdr.quickGet("int2",   myInt2) ;
+  Cmdr.quickGet("float1", myFloat1);
+  Cmdr.quickGet("float2", myFloat2) ;
+  Cmdr.quickGet("str1", myString1);
+  Cmdr.quickGet("str2", myString2) ;
+  return 0;
+}
+
+
 bool getIntHandler(Commander &Cmdr){
   Cmdr.print("myInt = ");
   Cmdr.println(myInt);
@@ -143,5 +174,6 @@ bool setStringsHandler(Commander &Cmdr){
 bool hiddenHandler(Commander &Cmdr){
   Cmdr.println("This command is hidden from the help system");
   //Cmdr.printDiagnostics();
+  Cmdr.unchain();
   return 0;
 }

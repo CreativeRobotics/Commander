@@ -91,6 +91,14 @@ printAlt	KEYWORD2
 printAltln	KEYWORD2
 writeAlt	KEYWORD2
 cmdHandler	KEYWORD2
+getCommandListLength KEYWORD2
+getCommandItem KEYWORD2
+getInternalCommandLength KEYWORD2
+getInternalCommandItem KEYWORD2
+getReadIndex KEYWORD2
+chain KEYWORD2
+unchain KEYWORD2
+autoChain KEYWORD2
 
 ###################################################################
 #	Variables

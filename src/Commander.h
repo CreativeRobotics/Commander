@@ -11,6 +11,7 @@ class Commander;
 
 //#define BENCHMARKING_ON
 
+#define DEBUG_INDEXER false
 
 #ifndef ON
 	#define ON true
@@ -43,10 +44,14 @@ typedef union {
 		uint16_t bufferState:1; 			//the state of the command buffer
 		uint16_t commandHandled:1; 		//flag set if a command was handled during the last update
 		uint16_t quickHelp:1; 				//flag set to true if quick help requested
+		uint16_t quickSetCalled:1; 		//Flags that the current command is a quickset - chaining must break here
 		uint16_t prefixMessage:1; 		//flag to indicate that any replies should be prefixed with the prefix string
 		uint16_t postfixMessage:1; 		//flag to indicate that any replies should be appended with the postfix string
 		uint16_t newlinePrinted:1; 		//flag to indicate that a newline has been sent - used with the prefixMessage flag to ensure prefix string appears at the start of every line
 		uint16_t dataStreamOn:1; 			//indicates that a data stream is active and in one of two modes
+		uint16_t chain:1; 						//Chain commands - reload the buffer after a command to see if there are more commands
+		uint16_t chaining:1; 					//Flags that the current command is an attempt to chain and so errors should be surpressed.
+		uint16_t commandType:3;				//Indicates which command type was last identified
   } bit;        // used for bit  access  
   uint16_t reg;  //used for register access 
 } cmdState_t;
@@ -72,20 +77,23 @@ typedef union {
 		uint32_t printComments:1; 					//10 set to true and lines prefixed with the comment char will print to the out and alt ports
 		uint32_t dataStreamMode:1;					//11 indicates the stream mode. mode 0 looks for an end of line, 1 is pure stream mode and cannot be terminated using a command char.
 		uint32_t useHardLock:1; 						//12 use hard or soft lock (0 or 1)
-		uint16_t locked:1; 									//13 Indicates if Commander is in a locked or unlocked state
+		uint32_t locked:1; 									//13 Indicates if Commander is in a locked or unlocked state
 		uint32_t stripCR:1; 								//14 Strip carriage returns from the buffer
 		uint32_t streamType:2;							//15-16 A two bit code indicating the stream type (Serial, File, HTML, OTHER)
-		uint16_t autoFormat:1; 							//17 bflag to indicate that all replies should be formatted with pre and postfix text
-		uint16_t useDelay:1; 								//18 Insert a delay before println
+		uint32_t autoFormat:1; 							//17 bflag to indicate that all replies should be formatted with pre and postfix text
+		uint32_t useDelay:1; 								//18 Insert a delay before println
+		uint32_t autoChain:1; 							//19 Automatically chain commands, and to hell with the consequences
+		uint32_t autoChainSurpressErrors:1;	//20 Prevent error messages when chaining commands
+		uint32_t ignoreQuotes:1;						//20 don't treat items in quotes as special
   } bit;        // used for bit  access  
   uint32_t reg;  //used for register access 
 } cmdSettings_t; 
 //Settings register:
 //							31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
 //default is 	0b 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  1  0  1  1  1  0  1  1  0  0  0
-//const String CommanderVersionNumber = "1.0.1";
-const uint8_t majorVersion = 2;
-const uint8_t minorVersion = 1;
+//const String CommanderVersionNumber = "3.0.0";
+const uint8_t majorVersion = 3;
+const uint8_t minorVersion = 0;
 const uint8_t subVersion   = 0;
 
 typedef enum streamType_t{
@@ -104,10 +112,22 @@ typedef struct portSettings_t{
 	cmdSettings_t settings;
 } portSettings_t;
 
-#define UNKNOWN_COMMAND 										-5
-#define CUSTOM_COMMAND 										  -2
-#define INTERNAL_COMMAND 										-1
-#define COMMENT_COMMAND 										-3
+/*
+#define INTERNAL_U												-20
+#define INTERNAL_X												-19
+#define INTERNAL_?												-18
+#define INTERNAL_help											-17
+#define INTERNAL_echo											-16
+#define INTERNAL_echox										-15
+#define INTERNAL_errors										-14
+*/
+#define UNKNOWN_COMMAND 										0
+#define USER_COMMAND											  1
+#define CUSTOM_COMMAND 										  2
+#define INTERNAL_COMMAND 										3
+#define COMMENT_COMMAND 										4
+
+
 #define INTERNAL_COMMAND_ITEMS 							7
 
 #define COMMANDER_DEFAULT_REGISTER_SETTINGS 0b00000000000000000100010111011000
@@ -116,7 +136,8 @@ typedef struct portSettings_t{
 //errorMessagesEnabled = true
 //stripCR = true
 #define COMMANDER_DEFAULT_STATE_SETTINGS 		0x0
-
+#define DEFAULT_DELIMITER_ITEMS 6
+// =:\/|
 
 
 	#define printAlt 		ports.altPort->print
@@ -142,6 +163,9 @@ class Commander{
 public:
 	Commander();
 	Commander(uint16_t reservedBuffer);
+	void   setDelimiters(String myDelims);
+	String getDelimiters();
+	void 	 addDelimiter(char newDelim) {delimiters += newDelim;}
 	void   begin(Stream *sPort);
 	void	 begin(Stream *sPort, const commandList_t *commands, uint32_t size);
 	void	 begin(Stream *sPort, Stream *oPort, const commandList_t *commands, uint32_t size);
@@ -170,14 +194,14 @@ public:
 	void   transfer(Commander& Cmdr);
 	bool   transferTo(const commandList_t *commands, uint32_t size, String newName);
 	void   transferBack(const commandList_t *commands, uint32_t size, String newName);
-	void   attachOutputPort(Stream *oPort);
+	void   attachOutputPort(Stream *oPort)					{ports.outPort = oPort;}
 	Stream* getOutputPort() 												{return ports.outPort;}
 	
-	void   attachAltPort(Stream *aPort);
+	void   attachAltPort(Stream *aPort)						  {ports.altPort = aPort;} 
 	Stream* getAltPort() 														{return ports.altPort;}
 	//void detachAltPort()														{ports.altPort = NULL;}//ports.altPort->flush();
 	
-	void   attachInputPort(Stream *iPort);
+	void   attachInputPort(Stream *iPort)						{ports.inPort = iPort;}
 	Stream* getInputPort()  												{return ports.inPort;}
 	void 	 deleteAltPort() {ports.altPort = NULL;}
 	void   attachSpecialHandler(cmdHandler handler) {customHandler = handler;}
@@ -190,8 +214,11 @@ public:
 	bool   quickSet(String cmd, int& var);
 	bool   quickSet(String cmd, float& var);
 	bool   quickSet(String cmd, double& var);
+	bool 	 quickSet(String cmd, String& str);
 	void   quickGet(String cmd, int var);
 	void   quickGet(String cmd, float var);
+	void   quickGet(String cmd, double var);
+	void 	 quickGet(String cmd, String str);
 	
 	size_t println() {
 		yield();
@@ -318,13 +345,15 @@ public:
 	void printCommandPrompt();
 	
 	bool containsTrue();
+	bool containsFalse();
 	bool containsOn();
+	bool containsOff();
 	
 	void setCommentChar(char cmtChar)     {commentChar    = cmtChar;}
 	void setReloadChar(char reloadChar)   {reloadCommandChar = reloadChar;}
 	void setEndOfLineChar(char eol) 			{endOfLineChar         = eol;}
 	void setPromptChar(char eol) 			    {promptChar         = eol;}
-	void setDelimChar(char eol) 			    {delimChar         = eol;}
+	//void setDelimChar(char eol) 			    {delimChar         = eol;}
 	
 	void echo(bool sState) 								{ports.settings.bit.echoTerminal = sState;}
 	void printComments(bool cState)				{ports.settings.bit.printComments = cState;}
@@ -355,6 +384,16 @@ public:
 	void showInternalCommands(bool state) {ports.settings.bit.printInternalCommands = state;}
 	bool showInternalCommands() 					{return ports.settings.bit.printInternalCommands;}
 	
+	void autoChain(bool state)						{ports.settings.bit.autoChain = state;}
+	bool autoChain()											{return ports.settings.bit.autoChain;}
+	
+	void autoChainErrors(bool state)			{ports.settings.bit.autoChainSurpressErrors = state;}
+	bool autoChainErrors()								{return ports.settings.bit.autoChainSurpressErrors;}
+	
+	
+	void chain()								 					{commandState.bit.chain = true;}
+	void unchain();
+	
 	cmdSettings_t  getSettings() 											{return ports.settings;}
 	void  				 setSettings(cmdSettings_t newSet)  {ports.settings = newSet;}
 	
@@ -376,7 +415,7 @@ public:
 			String subStr = bufferString.substring(dataReadIndex);
 			myIvar = (iType)subStr.toInt();
 			//if there is no space next, set dataReadIndex to zero and return true - you parsed an int, but next time it will fail.
-			nextNumberDelimiter();
+			if(!findNextItem()) dataReadIndex = 0;//nextNumberDelimiter();
 			return true; //nextSpace();
 		}else return 0;
 	}
@@ -388,9 +427,10 @@ public:
 	String 	getCommandItem(uint16_t commandItem); //returns a String containing the specified command and help text
 	uint8_t getInternalCommandLength() {return INTERNAL_COMMAND_ITEMS;}
 	String getInternalCommandItem(uint8_t internalItem);
-	//Both these internal commands can be invoked externally. Their commands handlers can be overridden by the user, whose own handler can then call these if required
+	uint16_t getReadIndex() {return dataReadIndex;}
 	void printCommandList();
 	void printCommanderVersion();
+	
 	String bufferString = ""; //the buffer - public so user functions can read it
 	String commanderName = "CMD";
 	String prefixString = "";
@@ -429,18 +469,22 @@ private:
 	int  matchCommand();
 	bool checkCommand(uint16_t cmdIdx);
 	bool checkInternalCommand(uint16_t cmdIdx);
+	bool qcheckInternal(uint8_t itm);
 	int  handleInternalCommand(uint16_t internalCommandIndex);
 	bool handleCustomCommand();
 	bool tryGet();
-	bool nextTextDelimiter();
-	bool nextNumberDelimiter();
-	int  findNumeral(uint8_t startIdx);
+	bool findNextDelim();
+	bool findNextItem();
+	bool delimToNextItem();
+	bool itemToNextDelim();
+	bool isDelimiter(char ch);
+	bool isItem(char ch);
+	void rewind();
 	bool isNumber(String &str);
-	bool isNumberDelimiter(char ch);
-	bool isTextDelimiter(char ch);
 	bool isNumeral(char ch);
 	bool isEndOfLine(char dataByte);
 	bool isEndOfCommand(char dataByte);
+	//bool isStartOfItem(char dataByte);
 	bool isNewline(char var) {		return (var == '\n') ? true : false;}
 	bool isNewline(int var) {			return (var == '\n') ? true : false;}
 	//bool isNewline(char var[]) {	return false;} //fix this so it looks for a newline at the end of the string ...
@@ -460,14 +504,17 @@ private:
   cmdHandler defaultHandler;
 	cmdState_t commandState;
 	portSettings_t ports;
-  int16_t commandVal = UNKNOWN_COMMAND;
-	uint8_t *commandLengths;
+  //int8_t commandType = UNKNOWN_COMMAND;
+  int16_t commandIndex = -1;
+	uint8_t* commandLengths;
 	uint8_t endIndexOfLastCommand = 0;
 	uint8_t longestCommand = 0;
 	char commentChar = '#'; //marks a line as a comment - ignored by the command parser
 	char reloadCommandChar = '/'; //send this character to automatically reprocess the old buffer - same as resending the last command from the users POV.	
 	char promptChar = '>';
-	char delimChar = '='; //special delimiter character - Is used IN ADDITION to the default space char to mark the end of a command or seperation between items
+	//char* delimiters;
+	String delimiters = "= :,\t\\/|";
+	//char delimChar = '='; //special delimiter character - Is used IN ADDITION to the default space char to mark the end of a command or seperation between items
 	char endOfLineChar = '\n';
   uint16_t bytesWritten = 0; //overflow check for bytes written into the buffer
 	uint16_t bufferSize = SBUFFER_DEFAULT;

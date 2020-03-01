@@ -1,0 +1,23 @@
+//GFX prefab
+
+void drawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
+
+line x0 y0 xl yl col
+
+drawFastVLine(uint16_t x0, uint16_t y0, uint16_t length, uint16_t color);
+
+vline x0 y0 len col
+
+
+drawFastHLine(uint16_t x0, uint16_t y0, uint16_t length, uint16_t color);
+
+hline x0 y0 len col
+
+void drawRect(uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t color);
+
+rect x0 y0 w h col
+
+void fillRect(uint16_t x0, uint16_t y0, uint16_t w, uint16_t h, uint16_t color);
+
+frect x0 y0 w h col
+
