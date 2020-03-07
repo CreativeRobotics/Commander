@@ -2,6 +2,8 @@
 
 ## Its designed to make it easy to create complex and powerful text based interfaces for controlling your sketch.
 
+# [Visit the wiki](https://github.com/CreativeRobotics/Commander/wiki)
+
 It allows you to define a list of text commands, a function to handle each command, and some help text that can be displayed when the 'help' command is sent. All the work of reading the incoming stream data, identifying the appropriate function and calling the handler is done by the commander object. It will run on most Arduino boards but is more suited to devices with large memory.
 
 Commander is attached to Stream object so it can be used with Serial ports, files on a SD cards, or Bluetooth Serial and other Stream based objects on wireless capable Arduinos such as the ESP32.
