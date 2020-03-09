@@ -13,10 +13,6 @@ const commandList_t masterCommands[] = {
 };
 
 
- /*
-  * This needs to be passed to the commander object so it knows how big the array of commands is, but this happens earlier in setup().
-  * This has already been forward declared before setup() so the compiler knows it exists
-  */
 /* Command handler template
 bool myFunc(Commander &Cmdr){
   //put your command handler code here
@@ -24,8 +20,16 @@ bool myFunc(Commander &Cmdr){
 }
 */
 
-//initialise the numOfMasterCmds variable after creating the masterCommands[] array - numOfMasterCmds now indicates the length of the array
-const uint16_t numOfMasterCmds = sizeof(masterCommands);
+void initialiseCommander(){
+   //Start Commander and attach the file stream object, and the serial port for replies
+  //begin(Stream object for input, stream object for output, command array, size of command array)
+  //Attach the outgoing port to Serial
+  //Attach the command list and the list size variable
+  cmd.begin(&myFile, &Serial,  masterCommands, sizeof(masterCommands));
+  //enable printing of comment lines
+  cmd.printComments(true);
+}
+
 //These are the command handlers, there needs to be one for each command in the command array myCommands[]
 //The command array can have multiple commands strings that all call the same function
 bool helloHandler(Commander &Cmdr){

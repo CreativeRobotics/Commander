@@ -66,6 +66,8 @@ An autoChain setting will make Commander attempt to reload any part of the buffe
 
 ### Basic code structure
 
+Visit the wiki [Getting Started](https://github.com/CreativeRobotics/Commander/wiki/GettingStarted) page for more information.
+
 To create a command system the user needs to create the command list array, and all the command function handlers. A command list array will look something like this (This is all taken from the BasicCommands example):
 
 ```
@@ -86,6 +88,8 @@ Each line specifies one command (and is one element in the command array). The f
 
 To add a command simply copy and paste in a new line, edit the text and create a command handler that matches the template below.
 
+__Command Handler Functions__
+
 The command handlers need to follow the same template. Each must return a boolean value, and take a Commander object as an argument - When the Commander object calls the function it will pass a reference to its self to the function so the users code can access that Commander object and all its methods and variables.
 
 The function template looks like this:
@@ -96,33 +100,6 @@ bool myFunc(Commander &Cmdr){
   return 0;
 }
 ```
-The commander object needs to be declared, then initialised at the start of your sketch, and it needs to be given a command list, a Stream object to use and it needs to know how big the Command list is.
-
-```
-Commander cmd;
-const uint16_t numOfMasterCmds = sizeof(masterCommands);
-void setup() {
-  Serial.begin(115200);
-  cmd.begin(&Serial, masterCommands, numOfMasterCmds);
-}
-```
-Here we are attaching _Serial_ to Commander, and giving it the _masterCommands_ command list and the _numOfMasterCmds_ variable which tells Commander how big the command array is (so it knows how many commands there are).
-
-_numOfMasterCmds_ has been initialised already with the size of the array.
-
-__Important note: If you want to place the Command array after the setup() function in your sketch, for example in a different tab, _numOfMasterCmds_ needs to be initialised after the command list array, but the compiler needs to know about it before it reaches the setup() in your code.__
-
-To do this you need to _forward declare_ the command list array and the _numOfMasterCmds_ variable before the setup() function like so:
-
-
-```
-extern const uint16_t numOfMasterCmds;
-extern const commandList_t masterCommands[];
-```
-
-This forward declaration tells the compiler that these variables exist, but have been initialised (given a starting value) somewhere else in the code.
-
-__Command Handler Functions__
 
 When you write your command handler you can access the Commanders methods and the command buffer using the Cmdr reference.
 

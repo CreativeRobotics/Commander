@@ -93,7 +93,7 @@ typedef union {
 //default is 	0b 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  1  0  1  1  1  0  1  1  0  0  0
 //const String CommanderVersionNumber = "3.0.0";
 const uint8_t majorVersion = 3;
-const uint8_t minorVersion = 0;
+const uint8_t minorVersion = 1;
 const uint8_t subVersion   = 0;
 
 typedef enum streamType_t{
@@ -163,14 +163,10 @@ class Commander{
 public:
 	Commander();
 	Commander(uint16_t reservedBuffer);
-	void   setDelimiters(String myDelims);
-	String getDelimiters();
-	void 	 addDelimiter(char newDelim) {delimiters += newDelim;}
 	void   begin(Stream *sPort);
 	void	 begin(Stream *sPort, const commandList_t *commands, uint32_t size);
 	void	 begin(Stream *sPort, Stream *oPort, const commandList_t *commands, uint32_t size);
 	bool   update();
-	bool 	 streamData();
 	void	 setPassPhrase(String& phrase) {passPhrase = &phrase;}
 	void   printPassPhrase() {print(*passPhrase);}
 	void 	 lock() {ports.settings.bit.locked = true;}
@@ -339,8 +335,8 @@ public:
 		commandState.bit.newlinePrinted = true;
 		commandState.bit.postfixMessage = true;
 	}
-	void setAutoFormat(bool state){ ports.settings.bit.autoFormat = state;}
-	bool getAutoFormat()					{ return ports.settings.bit.autoFormat;}
+	void autoFormat(bool state){ ports.settings.bit.autoFormat = state;}
+	bool autoFormat()					{ return ports.settings.bit.autoFormat;}
 
 	void printCommandPrompt();
 	
@@ -348,6 +344,10 @@ public:
 	bool containsFalse();
 	bool containsOn();
 	bool containsOff();
+	
+	void   setDelimiters(String myDelims);
+	String getDelimiters();
+	void 	 addDelimiter(char newDelim) {delimiters += newDelim;}
 	
 	void setCommentChar(char cmtChar)     {commentChar    = cmtChar;}
 	void setReloadChar(char reloadChar)   {reloadCommandChar = reloadChar;}
@@ -428,13 +428,12 @@ public:
 	uint8_t getInternalCommandLength() {return INTERNAL_COMMAND_ITEMS;}
 	String getInternalCommandItem(uint8_t internalItem);
 	uint16_t getReadIndex() {return dataReadIndex;}
+	void rewind();
 	void printCommandList();
 	void printCommanderVersion();
 	
 	String bufferString = ""; //the buffer - public so user functions can read it
 	String commanderName = "CMD";
-	String prefixString = "";
-	String postfixString = "";
 	
 	#if defined BENCHMARKING_ON
 		unsigned long benchmarkStartTime1 = 0, benchmarkStartTime2 = 0, benchmarkStartTime3 = 0, benchmarkStartTime4 = 0;
@@ -443,6 +442,7 @@ public:
 	#endif
 	
 private:
+	bool streamData();
 	void echoPorts(int portByte);
 	void bridgePorts();
 		void doPrefix(){ //handle prefixes for command replies
@@ -479,7 +479,6 @@ private:
 	bool itemToNextDelim();
 	bool isDelimiter(char ch);
 	bool isItem(char ch);
-	void rewind();
 	bool isNumber(String &str);
 	bool isNumeral(char ch);
 	bool isEndOfLine(char dataByte);
@@ -498,6 +497,8 @@ private:
 			write(']');
 		}
 	}
+	String prefixString = "";
+	String postfixString = "";
 	const commandList_t* commandList;
 	uint8_t commandListEntries = 0;
   cmdHandler customHandler;

@@ -15,10 +15,6 @@ const commandList_t masterCommands[] = {
 };
 
 
- /*
-  * This needs to be passed to the commander object so it knows how big the array of commands is, but this happens earlier in setup().
-  * This has already been forward declared before setup() so the compiler knows it exists
-  */
 /* Command handler template
 bool myFunc(Commander &Cmdr){
   //put your command handler code here
@@ -26,8 +22,30 @@ bool myFunc(Commander &Cmdr){
 }
 */
 
-//initialise the numOfMasterCmds variable after creating the masterCommands[] array - numOfMasterCmds now indicates the length of the array
-const uint16_t numOfMasterCmds = sizeof(masterCommands);
+void initialiseCommander(){
+  //Start Commander and attach the incoming port to the File stream
+  //Attach the outgoing port to Serial
+  //Attach the command list and the list size variable
+  cmd.begin(&myFile, &myLogFile,  masterCommands, numOfMasterCmds);
+  //attach Serial to the alt port and enable echoing of messages to alt so we can see whats happening
+  cmd.attachAltPort(&Serial);
+  //enable printing of comment lines
+  cmd.printComments(true);
+  //Echo to alt will copy any characters arriving on the input port to the Alt port - any commands sent to Commander will be copied to the Alt port
+  cmd.echoToAlt(true);
+  //CopyReplyAlt will print any replies to the alt port - Anything sent using the internal print commands will be sent to the Alt port as well as the Output port
+  cmd.copyRepyAlt(true);
+  //Uncomment this to have the actual commands logged to the log file as well as just the responses
+  //cmd.echo(true);
+    /*
+   * With both the options above enabled some things will appear twice on the alt port,
+   * for example with comment printing enabled the comment will be sent to alt once as the command input (echoed to alt) 
+   * and again as the response (copied reply to alt)
+   * With normal echoing disabled the log file will only be sent responses to commands, not the actual commands themselves.
+   */
+}
+
+
 //These are the command handlers, there needs to be one for each command in the command array myCommands[]
 //The command array can have multiple commands strings that all call the same function
 bool helloHandler(Commander &Cmdr){

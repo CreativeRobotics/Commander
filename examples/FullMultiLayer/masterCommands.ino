@@ -15,8 +15,10 @@ bool myFunc(Commander &Cmdr){
   return 0;
 }
 */
+
 //initialise the numOfMasterCmds variable after creating the masterCommands[] array - numOfMasterCmds now indicates the length of the array
 const uint16_t numOfMasterCmds = sizeof(masterCommands);
+
 
 //These are the command handlers, there needs to be one for each command in the command array myCommands[]
 //The command array can have multiple commands strings that all call the same function

@@ -51,6 +51,8 @@ void	Commander::begin(Stream *sPort, const commandList_t *commands, uint32_t siz
 	attachCommands(commands, size);
 	//print("CMD: Size is: ");
 	//println(size);
+	//print("CMD: sizeof cmds: ");
+	//println(sizeof(commands));
 	resetBuffer();
 }
 //==============================================================================================================
@@ -690,7 +692,7 @@ bool Commander::handleUnknown(){
 	if(defaultHandler != NULL) return defaultHandler(*this);
 	
 	if(ports.settings.bit.errorMessagesEnabled){
-		print(F("Command: \'"));
+		print(F("#Command: \'"));
 		print(bufferString.substring(0, bufferString.length()-1));
 		println(F("\' not recognised"));
 	}
@@ -762,7 +764,7 @@ bool  Commander::processBuffer(int dataByte){
 void Commander::writeToBuffer(int dataByte){
 	if(bytesWritten == bufferSize-1){
     commandState.bit.bufferFull = true; //buffer is full
-		if(ports.settings.bit.errorMessagesEnabled) println("ERR: Buffer Overflow");
+		if(ports.settings.bit.errorMessagesEnabled) println("#ERR: Buffer Overflow");
     return;
   }
   //if the character is not a cr, or if ignore cr is false, add it to the buffer
@@ -1061,6 +1063,8 @@ int Commander::handleInternalCommand(uint16_t internalCommandIndex){
 				if(str == "on") ports.settings.bit.echoTerminal  = true;
 			}
 			if(ports.settings.bit.errorMessagesEnabled){
+				
+				write(commentChar);
 				print(F("Echo Terminal "));
 				ports.settings.bit.echoTerminal ? println(onString) : println(offString);
 			}
@@ -1074,6 +1078,7 @@ int Commander::handleInternalCommand(uint16_t internalCommandIndex){
 				if(str == "on") ports.settings.bit.echoToAlt  = true;
 			}
 			if(ports.settings.bit.errorMessagesEnabled){
+				write(commentChar);
 				print(F("Echo Alt "));
 				ports.settings.bit.echoToAlt ? println(onString) : println(offString);
 			}
@@ -1087,6 +1092,7 @@ int Commander::handleInternalCommand(uint16_t internalCommandIndex){
 				if(str == "on") ports.settings.bit.errorMessagesEnabled  = true;
 			}
 			if(ports.settings.bit.errorMessagesEnabled){
+				write(commentChar);
 				print(F("Error Messages "));
 				ports.settings.bit.errorMessagesEnabled ? println(onString) : println(offString);
 			}

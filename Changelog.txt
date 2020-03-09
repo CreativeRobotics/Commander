@@ -1,10 +1,17 @@
 Commander changelog
 (Changelog started at 1.2.3)
 
+Commander 3.1.0
+
+Changed streamData to private method.
+Made pre and postfix Strings private.
+Changed set and get autoformat methods to autoformat(arg) and returnval autoformat() for consistency.
+Changed most examples to use an initialiser function after the command list instead of forward declarations when starting Commander. Multi layer examples still use forward declarations.
+Added template examples to match wiki.
+
 Commander 3.0.0
 
 Made some major changes under the hood to the way payloads and items are processed including adding support for chaining multiple commands together in a single line:
-
 
 Changed help and query formatting so the comment char appears at the start of every line for help, query and errors.
 Changed delimiter char to a String. The defaults are | = , : \ / plus SPACE and TAB.

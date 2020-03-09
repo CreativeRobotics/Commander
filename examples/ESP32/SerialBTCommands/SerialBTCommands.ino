@@ -5,9 +5,6 @@
 
 #include "BluetoothSerial.h"
 #include <Commander.h>
-
-extern const uint16_t numOfMasterCmds; //This is a forward declaration so the compiler knows we are going to declare this variable properly later
-extern const commandList_t masterCommands[];
 Commander cmd;
 //Variables we can set or get
 int myInt = 0;
@@ -23,9 +20,7 @@ void setup() {
   Serial.begin(115200);
   SerialBT.begin("ESP32test"); //Bluetooth device name
   Serial.println("The device started, now you can pair it with bluetooth!");
-  
-  cmd.begin(&SerialBT, masterCommands, numOfMasterCmds);
-  cmd.commandPrompt(ON);; //enable the command prompt
+  initialiseCommander();
   cmd.printCommandPrompt();
 }
 

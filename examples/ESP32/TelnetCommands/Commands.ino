@@ -7,18 +7,18 @@ const commandList_t masterCommands[] = {
   {"get float",  getFloatHandler, "get a float"},
   {"set float",  setFloatHandler, "set a float"},
 };
- /*
-  * This needs to be passed to the commander object so it knows how big the array of commands is, but this happens earlier in setup().
-  * This has already been forward declared before setup() so the compiler knows it exists
-  */
 /* Command handler template
 bool myFunc(Commander &Cmdr){
   //put your command handler code here
   return 0;
 }
 */
-//initialise the numOfMasterCmds variable after creating the masterCommands[] array - numOfMasterCmds now indicates the length of the array
-const uint16_t numOfMasterCmds = sizeof(masterCommands);
+
+//Initialisation function that avoids having to forward declare the command array and a size variable.
+void initialiseCommander(){
+  cmd.begin(&serverClient, masterCommands, sizeof(masterCommands));
+  cmd.commandPrompt(ON);; //enable the command prompt
+}
 
 //These are the command handlers, there needs to be one for each command in the command array myCommands[]
 //The command array can have multiple commands strings that all call the same function

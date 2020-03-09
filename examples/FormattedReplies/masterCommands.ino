@@ -10,19 +10,20 @@ const commandList_t masterCommands[] = {
   {"HTML",       formatHTMLHandler,   "Set pre and postfix lines to '<br>' and reloads any payload for handling EG:'HTML help' gets a formatted help page"},
   {"reload",     formatAgainHandler,  "Passes any payload to commander and enables formatting - uses any existing pre and postfix text"},
   {"toggle",     toggleFmtHandler,    "toggle formatting between always on or always off"},
-};
- /*
-  * This needs to be passed to the commander object so it knows how big the array of commands is, but this happens earlier in setup().
-  * This has already been forward declared before setup() so the compiler knows it exists
-  */
+
 /* Command handler template
 bool myFunc(Commander &Cmdr){
   //put your command handler code here
   return 0;
 }
 */
-//initialise the numOfMasterCmds variable after creating the masterCommands[] array - numOfMasterCmds now indicates the length of the array
-const uint16_t numOfMasterCmds = sizeof(masterCommands);
+
+void initialiseCommander(){
+  cmd.begin(&Serial, masterCommands, numOfMasterCmds);
+  cmd.commandPrompt(ON); //enable the command prompt
+  cmd.echo(true);     //Echo incoming characters to theoutput port
+  cmd.errorMessages(ON); //error messages are enabled - it will tell us if we issue any unrecognised commands
+}
 
 //These are the command handlers, there needs to be one for each command in the command array myCommands[]
 //The command array can have multiple commands strings that all call the same function

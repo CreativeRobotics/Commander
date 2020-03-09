@@ -4,8 +4,6 @@
 
 #include <Commander.h>
 
-extern const uint16_t numOfMasterCmds; //This is a forward declaration so the compiler knows we are going to declare this variable properly later
-extern const commandList_t masterCommands[];
 Commander cmd;
 //Variables we can set or get
 int myInt = 0;
@@ -56,9 +54,7 @@ void setup() {
   Serial.print(WiFi.localIP());
   Serial.println(" 23' to connect");
   
-  
-  cmd.begin(&serverClient, masterCommands, numOfMasterCmds);
-  cmd.commandPrompt(ON);; //enable the command prompt
+  initialiseCommander();
   cmd.printCommandPrompt();
 }
 

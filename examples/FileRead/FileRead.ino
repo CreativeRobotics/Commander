@@ -41,13 +41,8 @@ void setup() {
     Serial.println("SDCard Started");
   }
   Serial.println("Starting Commander ... ");
-  //Start Commander and attach the file stream object, and the serial port for replies
-  //begin(Stream object for input, stream object for output, command array, size of command array)
-  //Attach the outgoing port to Serial
-  //Attach the command list and the list size variable
-  cmd.begin(&myFile, &Serial,  masterCommands, numOfMasterCmds);
-  //enable printing of comment lines
-  cmd.printComments(true);
+
+  initialiseCommander();
   //Check that a file called "commands.txt" exists
   if(SDOK && SD.exists("commands.txt")){
     Serial.println("Opening File");

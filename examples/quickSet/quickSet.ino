@@ -17,8 +17,6 @@
  */
  
 #include <Commander.h>
-extern const uint16_t numOfMasterCmds; //This is a forward declarationso the compiler knows we are going to declare this variable properly later
-extern const commandList_t masterCommands[]; //forward declare the master command list
 Commander cmd;
 //Variables we can set or get
 int myInt1 = 0;
@@ -28,13 +26,8 @@ float myFloat2 = 0.0;
 //SETUP ---------------------------------------------------------------------------
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
-  //Serial.begin(115200);
-  cmd.begin(&Serial, masterCommands, numOfMasterCmds);
-  cmd.commandPrompt(ON); //enable the command prompt
-  cmd.echo(true);     //Echo incoming characters to theoutput port
-  cmd.errorMessages(ON); //error messages are enabled - it will tell us if we issue any unrecognised commands
-  //Error messaged do NOT work for quick set and get commands
+  Serial.begin(115200);
+  initialiseCommander();
   while(!Serial){;}
   Serial.println("Hello: Type 'help' to get help");
   cmd.printCommandPrompt();
