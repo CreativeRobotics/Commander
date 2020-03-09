@@ -18,6 +18,8 @@ Built in commands like Help will generate a help page that lists all the command
 
 Commander can use an optional command prompt with user defined text to emulate the feel of a command line, this prompt can be changed dynamically to indicate the current context, for example it can show the working directory of a file system, or the title of a sub command list. Commander also has a user defined 'reload' character that will reload the last command. By default this is / so, for example, if you sent a command called 'print sensors' and then want to send the same command again, you just need to type / to repeat it. A user defined 'comment' character (# by default) can be put in front of a line to tell Commander to ignore it. This can be handy when reading SD card files if you want to put comments into the file. Comments can also be placed after commands as well as on their own lines.
 
+Visit the [API](https://github.com/CreativeRobotics/Commander/wiki/API) page for a complete list of Commanders methods.
+
 ### The following list of examples demonstrate various ways to use Commander
 
 __BasicCommands:__ Demonstrates setting and getting integer and float values with a command list and setting multiple values with a single command.
@@ -70,7 +72,7 @@ Visit the wiki [Getting Started](https://github.com/CreativeRobotics/Commander/w
 
 To create a command system the user needs to create the command list array, and all the command function handlers. A command list array will look something like this (This is all taken from the BasicCommands example):
 
-```
+```c++
 const commandList_t masterCommands[] = {
   {"hello",       helloHandler,     "hello"},
   {"get int",     getIntHandler,    "get an int"},
@@ -94,7 +96,7 @@ The command handlers need to follow the same template. Each must return a boolea
 
 The function template looks like this:
 
-```
+```c++
 bool myFunc(Commander &Cmdr){
   //put your command handler code here
   return 0;
@@ -105,7 +107,7 @@ When you write your command handler you can access the Commanders methods and th
 
 In this example the command handler simply used the Cmdr objects print methods to reply with a message that includes the contents of the buffer.
 
-```
+```c++
 bool helloHandler(Commander &Cmdr){
   Cmdr.print("Hello! this is ");
   Cmdr.println(Cmdr.commanderName);
@@ -117,7 +119,7 @@ bool helloHandler(Commander &Cmdr){
 
 Commander has a built in method of parsing integer and float values, this can be used to extract numeric values from a commands payload.
 
-```
+```c++
 bool setIntHandler(Commander &Cmdr){
   if(Cmdr.getInt(myInt)){
     Cmdr.print("myInt set to ");
@@ -130,7 +132,7 @@ The method Cmdr.getInt(myInt) checks to see if it can find the start of a number
 
 Commander can also extract Strings from the payload. A string is any series of characters in quotes, or seperated by delimiters.
 
-```
+```c++
 bool setStringHandler(Commander &Cmdr){
   if(Cmdr.getString(myString)){
     Cmdr.print("myString set to ");
@@ -144,7 +146,7 @@ The method Cmdr.getString(myString) attempts to extract the next item in the pay
 
 The _getInt()_ and _getFloat()_ and _getString()_ methods keep track of where they are in the buffer so you can use them to extract a series of numbers with one command. The following code shows how to unpack up to four ints into an array. If you include less than four ints after the command, it will unpack the ones you did send, and if you include too many it will unpack only the first four.
 
-```
+```c++
 bool getIntsHandler(Commander &Cmdr){
   //create an array to store any values we find
   int values[4] = {0,0,0,0};
