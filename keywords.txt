@@ -27,8 +27,8 @@ getPayloadString	KEYWORD2
 feedString	KEYWORD2
 loadString	KEYWORD2
 endLine	KEYWORD2
-startStream	KEYWORD2
-stopStream	KEYWORD2
+startStreaming	KEYWORD2
+stopStreaming	KEYWORD2
 setStream	KEYWORD2
 isStreaming	KEYWORD2
 transfer	KEYWORD2

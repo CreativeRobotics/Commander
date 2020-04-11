@@ -1,6 +1,11 @@
 Commander changelog
 (Changelog started at 1.2.3)
 
+Commander 3.1.1
+
+Corrected some keywords.
+Fixed backslash error in #include.
+
 Commander 3.1.0
 
 Changed streamData to private method.

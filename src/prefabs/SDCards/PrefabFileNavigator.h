@@ -154,7 +154,7 @@ bool writeToFileHandler(Commander &Cmdr){
 		file1 = SD.open(Cmdr.getPayloadString().c_str(), O_WRITE | O_CREAT);
 		Cmdr.print(F("Created file: "));
 		Cmdr.println(Cmdr.getPayloadString());
-		Cmdr.startStream();
+		Cmdr.startStreaming();
 	}else Cmdr.print(F("Error - Filename required"));
   return 0;
 }
@@ -176,7 +176,7 @@ bool streamToFileHandler(Commander &Cmdr){
 	if(!file1.isOpen()){
 		//file is not open so tell the streamer to stop
 		Cmdr.println("Error: Streaming to closed file");
-		Cmdr.stopStream();
+		Cmdr.stopStreaming();
 		return 0;
 	}
 	if(Cmdr.bufferString.length() > 0){

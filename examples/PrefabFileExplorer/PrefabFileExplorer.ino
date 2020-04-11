@@ -7,7 +7,7 @@
  *  The prefab includes a file write command that lets you stream text files to a file on the SD card or open a file and sent typed text to the file.
  *  When this command is activated the command processor will stop working until the ASCII value 4 is received.
  *  This can be sent from a terminal application such as coolTerm by pressing CONTROL+D
- *  The Arduino Serial terminal does NOT allow you to send this character and so you cannot rerminate the file download when using the Arduino Serial terminal.
+ *  The Arduino Serial terminal does NOT allow you to send this character and so you cannot terminate the file download when using the Arduino Serial terminal.
  */
 #include <Commander.h>
 #include <PrefabFileNavigator.h>
