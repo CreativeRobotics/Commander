@@ -94,7 +94,7 @@ typedef union {
 //const String CommanderVersionNumber = "3.0.0";
 const uint8_t majorVersion = 3;
 const uint8_t minorVersion = 1;
-const uint8_t subVersion   = 0;
+const uint8_t subVersion   = 1;
 
 typedef enum streamType_t{
 	UNDEFINED_STREAM 	= 0,
