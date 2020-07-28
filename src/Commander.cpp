@@ -317,6 +317,7 @@ int Commander::quick(String cmd){
 	if(qSetHelp(cmd)) return 0;
 	return qSetSearch(cmd);
 }
+
 //==============================================================================================================
 bool Commander::quickSet(String cmd, int& var){
 	//look for the string, if found try and parse an int
