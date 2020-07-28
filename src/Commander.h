@@ -84,7 +84,7 @@ typedef union {
 		uint32_t useDelay:1; 								//18 Insert a delay before println
 		uint32_t autoChain:1; 							//19 Automatically chain commands, and to hell with the consequences
 		uint32_t autoChainSurpressErrors:1;	//20 Prevent error messages when chaining commands
-		uint32_t ignoreQuotes:1;						//20 don't treat items in quotes as special
+		uint32_t ignoreQuotes:1;						//21 don't treat items in quotes as special
   } bit;        // used for bit  access  
   uint32_t reg;  //used for register access 
 } cmdSettings_t; 
@@ -93,7 +93,7 @@ typedef union {
 //default is 	0b 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  1  0  1  1  1  0  1  1  0  0  0
 //const String CommanderVersionNumber = "3.0.0";
 const uint8_t majorVersion = 3;
-const uint8_t minorVersion = 1;
+const uint8_t minorVersion = 2;
 const uint8_t subVersion   = 0;
 
 typedef enum streamType_t{
@@ -166,6 +166,7 @@ public:
 	void   begin(Stream *sPort);
 	void	 begin(Stream *sPort, const commandList_t *commands, uint32_t size);
 	void	 begin(Stream *sPort, Stream *oPort, const commandList_t *commands, uint32_t size);
+	void	 begin(const commandList_t *commands, uint32_t size);
 	bool   update();
 	void	 setPassPhrase(String& phrase) {passPhrase = &phrase;}
 	void   printPassPhrase() {print(*passPhrase);}
@@ -180,6 +181,7 @@ public:
 	String getPayloadString();
 	bool   feedString(String newString);
 	void   loadString(String newString);
+	void	 write(uint8_t character) {bufferString += character;}
 	bool 	 endLine();
 	void 	 startStreaming() {commandState.bit.dataStreamOn = true;} //set the streaming function ON
 	void 	 stopStreaming() {commandState.bit.dataStreamOn = false;} //set the streaming function OFF
@@ -206,6 +208,7 @@ public:
 	void   attachCommands(const commandList_t *commands, uint32_t size);
 	void   setStreamType(streamType_t newType) {ports.settings.bit.streamType = (uint16_t)newType;}
 	streamType_t getStreamType() {return (streamType_t)ports.settings.bit.streamType;}
+	int 	 quick(String cmd);
 	void 	 quickSetHelp();
 	bool   quickSet(String cmd, int& var);
 	bool   quickSet(String cmd, float& var);
@@ -424,6 +427,7 @@ public:
 	bool getString(String &myString); //returns the next string in the payload - determined by the delimiters space and special char
 	uint8_t countItems(); //Returns the number of items in the payload. An item is any string with a space or delimiterChar at each end (or the end of line)
 	uint16_t getCommandListLength() {return commandListEntries;} //returns the number of commands
+	const commandList_t* getCommandList() {return commandList;}
 	String 	getCommandItem(uint16_t commandItem); //returns a String containing the specified command and help text
 	uint8_t getInternalCommandLength() {return INTERNAL_COMMAND_ITEMS;}
 	String getInternalCommandItem(uint8_t internalItem);
@@ -431,7 +435,6 @@ public:
 	void rewind();
 	void printCommandList();
 	void printCommanderVersion();
-	
 	String bufferString = ""; //the buffer - public so user functions can read it
 	String commanderName = "CMD";
 	
@@ -442,6 +445,7 @@ public:
 	#endif
 	
 private:
+	bool processPending();
 	bool streamData();
 	void echoPorts(int portByte);
 	void bridgePorts();

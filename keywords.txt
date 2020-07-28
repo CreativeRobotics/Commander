@@ -44,6 +44,7 @@ deleteAltPort	KEYWORD2
 attachSpecialHandler	KEYWORD2
 setBuffer	KEYWORD2
 attachCommands	KEYWORD2
+quick	KEYWORD2
 quickSetHelp	KEYWORD2
 quickSet	KEYWORD2
 quickGet	KEYWORD2
@@ -60,6 +61,8 @@ getAutoFormat	KEYWORD2
 printCommandPrompt	KEYWORD2
 containsTrue	KEYWORD2
 containsOn	KEYWORD2
+containsOff KEYWORD2
+containsFalse KEYWORD2
 setCommentChar	KEYWORD2
 setReloadChar	KEYWORD2
 setEndOfLineChar	KEYWORD2
@@ -91,6 +94,7 @@ printAlt	KEYWORD2
 printAltln	KEYWORD2
 writeAlt	KEYWORD2
 cmdHandler	KEYWORD2
+getCommandList KEYWORD2
 getCommandListLength KEYWORD2
 getCommandItem KEYWORD2
 getInternalCommandLength KEYWORD2
@@ -99,6 +103,8 @@ getReadIndex KEYWORD2
 chain KEYWORD2
 unchain KEYWORD2
 autoChain KEYWORD2
+setStreamType KEYWORD2
+getStreamType KEYWORD2
 
 ###################################################################
 #	Variables
@@ -117,3 +123,7 @@ commandList_t	KEYWORD3
 #	Constants
 ###################################################################
 
+UNDEFINED_STREAM KEYWORD3
+SERIAL_STREAM KEYWORD3
+FILE_STREAM KEYWORD3
+WEB_STREAM KEYWORD3

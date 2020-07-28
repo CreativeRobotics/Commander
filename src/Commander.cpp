@@ -40,19 +40,13 @@ String Commander::getDelimiters(){
 void	Commander::begin(Stream *sPort){
 	ports.inPort = sPort;
 	ports.outPort = sPort;
-	//portAttached = true;
-	//ports.inPort->println("Port Attached");
-	setup();
+	resetBuffer();
 }
 //==============================================================================================================
 void	Commander::begin(Stream *sPort, const commandList_t *commands, uint32_t size){
 	ports.inPort = sPort;
 	ports.outPort = sPort;
 	attachCommands(commands, size);
-	//print("CMD: Size is: ");
-	//println(size);
-	//print("CMD: sizeof cmds: ");
-	//println(sizeof(commands));
 	resetBuffer();
 }
 //==============================================================================================================
@@ -64,20 +58,19 @@ void	Commander::begin(Stream *sPort, Stream *oPort, const commandList_t *command
 }
 //==============================================================================================================
 
+void	 Commander::begin(const commandList_t *commands, uint32_t size){
+	ports.inPort = NULL;
+	ports.outPort = NULL;
+	attachCommands(commands, size);
+	resetBuffer();
+}
+//==============================================================================================================
+
 bool Commander::update(){
-	if(!ports.inPort) return 0; //don't bother if there is no stream attached
+	if(commandState.bit.isCommandPending) return processPending();
+	if(!ports.inPort) return 0;
 	//Check if streamOn is true and process it if it is.
 	if(commandState.bit.dataStreamOn) return streamData();
-	//returns true if any bytes left to read
-	if(commandState.bit.isCommandPending){
-		//there is a command still in the buffer, process it now
-		if(ports.settings.bit.echoTerminal) 							print(bufferString);
-		else if(ports.settings.bit.commandPromptEnabled) 	println();
-		if(ports.settings.bit.echoToAlt && ports.altPort) printAlt(bufferString);
-		commandState.bit.isCommandPending = false;
-		commandState.bit.commandHandled = !handleCommand();
-		return (bool)ports.inPort->available(); //return true if any bytes left to read
-	}
 
 	commandState.bit.commandHandled = false;
 	if(ports.settings.bit.commandParserEnabled){
@@ -122,6 +115,17 @@ bool Commander::update(){
 	return (bool)ports.inPort->available(); //return true if any bytes left to read
 }
 //==============================================================================================================
+bool Commander::processPending(){
+	//there is a command still in the buffer, process it now
+	commandState.bit.commandHandled = false;
+	if(ports.settings.bit.echoTerminal) 							print(bufferString);
+	else if(ports.settings.bit.commandPromptEnabled) 	println();
+	if(ports.settings.bit.echoToAlt && ports.altPort) printAlt(bufferString);
+	commandState.bit.isCommandPending = false;
+	commandState.bit.commandHandled = !handleCommand();
+	if(!ports.inPort) return 0;
+	else return (bool)ports.inPort->available(); //return true if any bytes left to read
+}
 
 bool Commander::streamData(){
 	bufferString = "";//clear the buffer so we can fill it with any new chars
@@ -188,11 +192,11 @@ bool Commander::feed(Commander& Cmdr){
 	//Copy the String buffer then handle the command
 	
 	bufferString = Cmdr.getPayload();
-
+	bool prompt = commandPrompt();
 	commandPrompt(OFF); //dsiable the prompt so it doesn't print twice
 	commandState.bit.commandHandled = !handleCommand(); //try and handle the command
 
-	if( ports.settings.bit.multiCommanderMode == false ) commandPrompt(ON); //re-enable the prompt if in single commander mode so it prints on exit
+	if( ports.settings.bit.multiCommanderMode == false ) commandPrompt(prompt); //re-enable the prompt if in single commander mode so it prints on exit
 	return commandState.bit.commandHandled;
 }
 //==============================================================================================================
@@ -229,9 +233,10 @@ bool Commander::feedString(String newString){
 	if(newString.length() < 2) return commandState.bit.commandHandled; //return if string is not valid - too short for a command and endofline
 	bufferString = newString;
 	if( !isEndOfLine(bufferString.charAt( bufferString.length()-1 ) ) ) bufferString += endOfLineChar;//append an end of line character if none there
+	bool prompt = commandPrompt();
 	commandPrompt(OFF);
 	commandState.bit.commandHandled = !handleCommand();
-	if( ports.settings.bit.multiCommanderMode == false ) commandPrompt(ON); //re-enable the prompt if in single commander mode so it prints on exit
+	if( ports.settings.bit.multiCommanderMode == false ) commandPrompt(prompt); //re-enable the prompt if in single commander mode so it prints on exit
 	return commandState.bit.commandHandled;
 }//==============================================================================================================
 
@@ -304,6 +309,13 @@ void Commander::attachCommands(const commandList_t *commands, uint32_t size){
 void Commander::quickSetHelp(){
 	if( bufferString.indexOf("help") > -1 )	commandState.bit.quickHelp = true;
 	else commandState.bit.quickHelp = false;
+}
+//==============================================================================================================
+int Commander::quick(String cmd){
+	//look for the string, if found return true
+	//print help if help was triggered
+	if(qSetHelp(cmd)) return 0;
+	return qSetSearch(cmd);
 }
 //==============================================================================================================
 bool Commander::quickSet(String cmd, int& var){
@@ -532,42 +544,76 @@ void Commander::printCommandPrompt(){
 }
 //==============================================================================================================
 bool Commander::containsTrue(){
-	uint16_t oldIdx = dataReadIndex;
-	String str = "";
-	getString(str);
-	dataReadIndex = oldIdx;
-	str.toLowerCase();
-	if(str == "true") return true;
+	//Search for true TRUE or True
+	for(uint8_t n = dataReadIndex; n < bufferString.length()-4; n++){
+		//is is a T or a t
+		if(bufferString.charAt(n) == 't' || bufferString.charAt(n) == 'T'){
+			//is the preceeding char a delimiter, and does the string end with a delimiter or a newline
+			if(isDelimiter(bufferString.charAt(n-1)) && (isDelimiter(bufferString.charAt(n+4)) || bufferString.charAt(n+4) == endOfLineChar) ){
+				//is the next char an r or an R
+				if(bufferString.charAt(n+1) == 'r' || bufferString.charAt(n+1) == 'R'){
+					//is the next char a u or a U
+					if(bufferString.charAt(n+2) == 'u' || bufferString.charAt(n+2) == 'U'){
+						//is the next char an e or an E
+						if(bufferString.charAt(n+3) == 'e' || bufferString.charAt(n+3) == 'E') return true; //YAY!
+					}
+				}
+			}
+		}
+	}
 	return false;
 }
 //==============================================================================================================
 bool Commander::containsFalse(){
-	uint16_t oldIdx = dataReadIndex;
-	String str = "";
-	getString(str);
-	dataReadIndex = oldIdx;
-	str.toLowerCase();
-	if(str == "false") return true;
+		for(uint8_t n = dataReadIndex; n < bufferString.length()-5; n++){
+		//is is a T or a t
+		if(bufferString.charAt(n) == 'f' || bufferString.charAt(n) == 'F'){
+			//is the preceeding char a delimiter and does it end with a delim or newline
+			if(isDelimiter(bufferString.charAt(n-1)) && ( isDelimiter(bufferString.charAt(n+5)) || bufferString.charAt(n+5) == endOfLineChar) ){
+				//is the next char an r or an R
+				if(bufferString.charAt(n+1) == 'a' || bufferString.charAt(n+1) == 'A'){
+					//is the next char a u or a U
+					if(bufferString.charAt(n+2) == 'l' || bufferString.charAt(n+2) == 'L'){
+						//is the next char an e or an E
+						if(bufferString.charAt(n+3) == 's' || bufferString.charAt(n+3) == 'S'){
+							//is the next char an e or an E
+							if(bufferString.charAt(n+4) == 'e' || bufferString.charAt(n+4) == 'E') return true; //YAY!
+						}
+					}
+				}
+			}
+		}
+	}
 	return false;
 }
 //==============================================================================================================
 bool Commander::containsOn(){
-	uint16_t oldIdx = dataReadIndex;
-	String str = "";
-	getString(str);
-	dataReadIndex = oldIdx;
-	str.toLowerCase();
-	if(str == "on") return true;
+	for(uint8_t n = dataReadIndex; n < bufferString.length()-2; n++){
+		//is is a o or a O
+		if(bufferString.charAt(n) == 'o' || bufferString.charAt(n) == 'O'){
+			//is the preceeding char a delimiter, and does the string end with a delimiter or a newline
+			if(isDelimiter(bufferString.charAt(n-1)) && (isDelimiter(bufferString.charAt(n+2)) || bufferString.charAt(n+2) == endOfLineChar) ){
+				//is the next char an r or an R
+				if(bufferString.charAt(n+1) == 'n' || bufferString.charAt(n+1) == 'N') return true; //YAY!
+			}
+		}
+	}
 	return false;
 }
 //==============================================================================================================
 bool Commander::containsOff(){
-	uint16_t oldIdx = dataReadIndex;
-	String str = "";
-	getString(str);
-	dataReadIndex = oldIdx;
-	str.toLowerCase();
-	if(str == "off") return true;
+	for(uint8_t n = dataReadIndex; n < bufferString.length()-3; n++){
+		//is is a o or a O
+		if(bufferString.charAt(n) == 'o' || bufferString.charAt(n) == 'O'){
+			//is the preceeding char a delimiter, and does the string end with a delimiter or a newline
+			if(isDelimiter(bufferString.charAt(n-1)) && (isDelimiter(bufferString.charAt(n+3)) || bufferString.charAt(n+3) == endOfLineChar) ){
+				//is the next char an r or an R
+				if(bufferString.charAt(n+1) == 'f' || bufferString.charAt(n+1) == 'F'){//is the next char an r or an R
+					if(bufferString.charAt(n+2) == 'f' || bufferString.charAt(n+2) == 'F') return true; //YAY!
+				}
+			}
+		}
+	}
 	return false;
 }
 //==============================================================================================================

@@ -4,6 +4,7 @@ const commandList_t masterCommands[] = {
   {"hello",      helloHandler, "Say hello"},
   {"set",        setHandler,   "Quick set commands. Help: \"set help\""},
   {"get",        getHandler,   "Quick get commands. Help: \"get help\""},
+  {"print",        printHandler,   "Print items. Help: \"print help\""},
   {"set int",        getIntHandler,   "Get many ints"},
 };
 /* Command handler template
@@ -47,6 +48,19 @@ bool getHandler(Commander &Cmdr){
   Cmdr.quickGet("int2",   myInt2) ;
   Cmdr.quickGet("float1", myFloat1);
   Cmdr.quickGet("float2", myFloat2) ;
+  return 0;
+}
+
+
+bool printHandler(Commander &Cmdr){
+  //quickset function
+  //Call quickSetHelp() first to handle any help command
+  Cmdr.quickSetHelp();
+  if(Cmdr.quick("int1")) Cmdr.println(myInt1);
+  if(Cmdr.quick("int2")) Cmdr.println(myInt2);
+  if(Cmdr.quick("float1")) Cmdr.println(myFloat1);
+  if(Cmdr.quick("float2")) Cmdr.println(myFloat2);
+  if(Cmdr.quick("hello")) Cmdr.println("Hello world");
   return 0;
 }
 bool getIntHandler(Commander &Cmdr){

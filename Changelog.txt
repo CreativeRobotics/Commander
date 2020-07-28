@@ -1,6 +1,18 @@
 Commander changelog
 (Changelog started at 1.2.3)
 
+
+Commander 3.2.0
+
+Re-wrote containsOn/Off/True/False methods so they search the entire buffer for case insensitive tokens (on, ON, On, true, True, TRUE etc) rather than just checking the next item. The search method looks for the start char (e.g t or T) and if found checks that the target phrase is bounded by a delimiter/end of line before checking for the rest of the characters... possibly not optimal yet? ...
+Changed how update works so that when the inport is NULL, Commander will just look for pending commands. This is to allow Commander to be used without an inport so it can be fed Strings from another service (e.g an MQTT payload)
+Added another begin() method that does not need ports to be specified.
+Added method that returns the command list pointer.
+Added a quick method to compliment the quickSet methods. Quick does not set any variables, but can be used to add sub commands with a quick help system in the same way as quickSet and Get. It is helpful for rapid prototyping where you want to add simple commands for debugging without creating whole command handlers.
+Updated the quickSet example with the new quick commands
+Added write(uint8_t) method to add a single character to the buffer
+Changed how feed and feedString work so the command prompt state is saved and reinstated at the end.
+
 Commander 3.1.1
 
 Corrected some keywords.
