@@ -51,6 +51,6 @@ bool exitSet(Commander &Cmdr){
   //Transfer this Cmdr to the new active commander
   activeCommander->transfer(Cmdr);
   //Restore this commanders settings from the backup before we exit
-  Cmdr.setPortSettings(savedSettings);
+  Cmdr.portSettings(savedSettings);
   return 0;
 }

@@ -1,6 +1,14 @@
 Commander changelog
 (Changelog started at 1.2.3)
 
+Commander 4.0.0 - Method act
+
+Method CHAIN'O'RAMA! All methods that used to return void now return a *this reference allowing them to be chained.
+Changed some configuration commands such as setCommentChar to commentChar and overloaded them so the same function name can be used to set or get the property.
+**Quite a few method names have changed so there is better API consistency.
+Added setPending(). If you directly write commands to the bufferString, call setPending() before update to tell Commander there is a command waiting there.
+Updated keyword list.
+Fixed some errors in examples.
 
 Commander 3.2.0
 

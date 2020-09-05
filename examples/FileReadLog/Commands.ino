@@ -26,7 +26,7 @@ void initialiseCommander(){
   //Start Commander and attach the incoming port to the File stream
   //Attach the outgoing port to Serial
   //Attach the command list and the list size variable
-  cmd.begin(&myFile, &myLogFile,  masterCommands, numOfMasterCmds);
+  cmd.begin(&myFile, &myLogFile,  masterCommands, sizeof(masterCommands));
   //attach Serial to the alt port and enable echoing of messages to alt so we can see whats happening
   cmd.attachAltPort(&Serial);
   //enable printing of comment lines

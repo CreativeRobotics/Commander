@@ -10,7 +10,7 @@ const commandList_t masterCommands[] = {
   {"HTML",       formatHTMLHandler,   "Set pre and postfix lines to '<br>' and reloads any payload for handling EG:'HTML help' gets a formatted help page"},
   {"reload",     formatAgainHandler,  "Passes any payload to commander and enables formatting - uses any existing pre and postfix text"},
   {"toggle",     toggleFmtHandler,    "toggle formatting between always on or always off"},
-
+};
 /* Command handler template
 bool myFunc(Commander &Cmdr){
   //put your command handler code here
@@ -19,7 +19,7 @@ bool myFunc(Commander &Cmdr){
 */
 
 void initialiseCommander(){
-  cmd.begin(&Serial, masterCommands, numOfMasterCmds);
+  cmd.begin(&Serial, masterCommands, sizeof(masterCommands));
   cmd.commandPrompt(ON); //enable the command prompt
   cmd.echo(true);     //Echo incoming characters to theoutput port
   cmd.errorMessages(ON); //error messages are enabled - it will tell us if we issue any unrecognised commands
@@ -115,6 +115,7 @@ bool formatHTMLHandler(Commander &Cmdr){
   }
   return 0;
 }
+
 bool formatAgainHandler(Commander &Cmdr){
   //The startFormatting function will enable pre and postfix formatting for the commadn heing handled.
   //If autoformat is NOT enabled then the pre/postfix behaviour will end when commander returns control to the user code
@@ -138,11 +139,10 @@ bool formatAgainHandler(Commander &Cmdr){
 
 
 bool toggleFmtHandler(Commander &Cmdr){
-  formattingOn = !formattingOn;
   //Setting autoFormat to true will make Commander add the pre and postfix messages to every response.
   //Pre and Postfix messages are Strings, if they are empty then nothing will be printed
   //EG: If you need autoformatting and only want a postfix message then you can set the prefix message to ""
-  Cmdr.setAutoFormat(formattingOn);
-  Cmdr.getAutoFormat() ? Cmdr.println("Autoformat ON") : Cmdr.println("Autoformat OFF");
+  Cmdr.autoFormat( !Cmdr.autoFormat() ); //Get current autoformat state, invert it and set it as the new autoformat state.
+  Cmdr.autoFormat() ? Cmdr.println("Autoformat ON") : Cmdr.println("Autoformat OFF");
   return 0;
 }

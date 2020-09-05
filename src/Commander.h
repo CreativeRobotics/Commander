@@ -94,7 +94,7 @@ typedef union {
 //default is 	0b 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  1  0  1  1  1  0  1  1  0  0  0
 //const String CommanderVersionNumber = "3.0.0";
 const uint8_t majorVersion = 3;
-const uint8_t minorVersion = 2;
+const uint8_t minorVersion = 3;
 const uint8_t subVersion   = 0;
 
 typedef enum streamType_t{
@@ -164,61 +164,62 @@ class Commander{
 public:
 	Commander();
 	Commander(uint16_t reservedBuffer);
-	void   begin(Stream *sPort);
-	void	 begin(Stream *sPort, const commandList_t *commands, uint32_t size);
-	void	 begin(Stream *sPort, Stream *oPort, const commandList_t *commands, uint32_t size);
-	void	 begin(const commandList_t *commands, uint32_t size);
+	Commander&   begin(Stream *sPort);
+	Commander&	 begin(Stream *sPort, const commandList_t *commands, uint32_t size);
+	Commander&	 begin(Stream *sPort, Stream *oPort, const commandList_t *commands, uint32_t size);
+	Commander&	 begin(const commandList_t *commands, uint32_t size);
 	bool   update();
-	void	 setPassPhrase(String& phrase) {passPhrase = &phrase;}
-	void   printPassPhrase() {print(*passPhrase);}
-	void 	 lock() {ports.settings.bit.locked = true;}
-	void 	 unlock() {ports.settings.bit.locked = false;}
-	void 	 setLockType(bool hlState) {ports.settings.bit.useHardLock = hlState;}
-	bool	 isLocked() {return ports.settings.bit.locked;}
-	bool	 getLockType() {return ports.settings.bit.useHardLock;}
-	bool   feed(Commander& Cmdr);
-	bool   hasPayload();
-	String getPayload();
-	String getPayloadString();
-	bool   feedString(String newString);
-	void   loadString(String newString);
-	void	 write(uint8_t character) {bufferString += character;}
-	bool 	 endLine();
-	void 	 startStreaming() {commandState.bit.dataStreamOn = true;} //set the streaming function ON
-	void 	 stopStreaming() {commandState.bit.dataStreamOn = false;} //set the streaming function OFF
-	void 	 setStreaming(bool streamState) {commandState.bit.dataStreamOn = streamState;}
-	bool 	 isStreaming() {return commandState.bit.dataStreamOn;}
-	void 	 setStreamingMode(bool dataStreamMode) {ports.settings.bit.dataStreamMode = dataStreamMode;}
-	bool 	 getStreamingMode() {return ports.settings.bit.dataStreamMode;}
-	void   transfer(Commander& Cmdr);
-	bool   transferTo(const commandList_t *commands, uint32_t size, String newName);
-	void   transferBack(const commandList_t *commands, uint32_t size, String newName);
-	void   attachOutputPort(Stream *oPort)					{ports.outPort = oPort;}
-	Stream* getOutputPort() 												{return ports.outPort;}
-	
-	void   attachAltPort(Stream *aPort)						  {ports.altPort = aPort;} 
-	Stream* getAltPort() 														{return ports.altPort;}
+	Commander&	 setPassPhrase(String& phrase) 	{passPhrase = &phrase; return *this;}
+	Commander&   printPassPhrase() 							{print(*passPhrase); return *this;}
+	Commander& 	 lock() 												{ports.settings.bit.locked = true; return *this;}
+	Commander& 	 unlock() 											{ports.settings.bit.locked = false; return *this;}
+	Commander& 	 setLockType(bool hlState) 			{ports.settings.bit.useHardLock = hlState; return *this;}
+	bool	 				isLocked() 										{return ports.settings.bit.locked;}
+	bool	 				getLockType() 								{return ports.settings.bit.useHardLock;}
+	bool   				feed(Commander& Cmdr);
+	bool   				hasPayload();
+	String 				getPayload();
+	String 				getPayloadString();
+	bool   				feedString(String newString);
+	Commander&   	loadString(String newString);
+	Commander&   	setPending(bool pState)									{commandState.bit.isCommandPending = pState;} //sets the pending command bit - used if manually writing to the buffer
+	Commander&	 	write(uint8_t character) 								{bufferString += character; return *this;}
+	bool 	 				endLine();
+	Commander& 	 	startStreaming() 												{commandState.bit.dataStreamOn = true; return *this;} //set the streaming function ON
+	Commander& 	 	stopStreaming() 												{commandState.bit.dataStreamOn = false; return *this;} //set the streaming function OFF
+	Commander& 	 	setStreaming(bool streamState) 					{commandState.bit.dataStreamOn = streamState; return *this;}
+	bool 	 				isStreaming() 													{return commandState.bit.dataStreamOn;}
+	Commander& 	 	setStreamingMode(bool dataStreamMode) 	{ports.settings.bit.dataStreamMode = dataStreamMode; return *this;}
+	bool 	 				getStreamingMode() 													{return ports.settings.bit.dataStreamMode;}
+	Commander&   	transfer(Commander& Cmdr);
+	bool   				transferTo(const commandList_t *commands, uint32_t size, String newName);
+	Commander&   	transferBack(const commandList_t *commands, uint32_t size, String newName);
+	Commander&   	attachOutputPort(Stream *oPort)							{ports.outPort = oPort; return *this;}
+	Stream* 			getOutputPort() 														{return ports.outPort;}
+	Commander&   	attachAltPort(Stream *aPort)								{ports.altPort = aPort; return *this;} 
+	Stream* 			getAltPort() 																{return ports.altPort;}
 	//void detachAltPort()														{ports.altPort = NULL;}//ports.altPort->flush();
 	
-	void   attachInputPort(Stream *iPort)						{ports.inPort = iPort;}
-	Stream* getInputPort()  												{return ports.inPort;}
-	void 	 deleteAltPort() {ports.altPort = NULL;}
-	void   attachSpecialHandler(cmdHandler handler) {customHandler = handler;}
-	void 	 attachDefaultHandler(cmdHandler handler) {defaultHandler = handler;}
-	void   setBuffer(uint16_t buffSize);
-	void   attachCommands(const commandList_t *commands, uint32_t size);
-	void   setStreamType(streamType_t newType) {ports.settings.bit.streamType = (uint16_t)newType;}
-	streamType_t getStreamType() {return (streamType_t)ports.settings.bit.streamType;}
-	int 	 quick(String cmd);
-	void 	 quickSetHelp();
-	bool   quickSet(String cmd, int& var);
-	bool   quickSet(String cmd, float& var);
-	bool   quickSet(String cmd, double& var);
-	bool 	 quickSet(String cmd, String& str);
-	void   quickGet(String cmd, int var);
-	void   quickGet(String cmd, float var);
-	void   quickGet(String cmd, double var);
-	void 	 quickGet(String cmd, String str);
+	Commander&   	attachInputPort(Stream *iPort)						{ports.inPort = iPort; return *this;}
+	Stream* 			getInputPort()  													{return ports.inPort;}
+	Commander& 	 	deleteAltPort() 													{ports.altPort = NULL; return *this;}
+	Commander&   	attachSpecialHandler(cmdHandler handler) 	{customHandler = handler; return *this;}
+	Commander& 	 	attachDefaultHandler(cmdHandler handler) 	{defaultHandler = handler; return *this;}
+	Commander&   	setBuffer(uint16_t buffSize);
+	Commander&  	attachCommands(const commandList_t *commands, uint32_t size);
+	Commander&   	setStreamType(streamType_t newType) 			{ports.settings.bit.streamType = (uint16_t)newType; return *this;}
+	streamType_t 	getStreamType() 													{return (streamType_t)ports.settings.bit.streamType;}
+	
+	int 	 				quick(String cmd);
+	Commander& 	 	quickSetHelp();
+	bool   				quickSet(String cmd, int& var);
+	bool   				quickSet(String cmd, float& var);
+	bool   				quickSet(String cmd, double& var);
+	bool 	 				quickSet(String cmd, String& str);
+	Commander&   	quickGet(String cmd, int var);
+	Commander&   	quickGet(String cmd, float var);
+	Commander&  	quickGet(String cmd, double var);
+	Commander& 	 	quickGet(String cmd, String str);
 	
 	size_t println() {
 		yield();
@@ -313,104 +314,117 @@ public:
 	}
 	
 	
-	void setPrefix(String prfx){
+	Commander& setPrefix(String prfx){
 		prefixString = prfx;
 		commandState.bit.prefixMessage = true;
 		commandState.bit.newlinePrinted = true;
+		return *this;
 	}
 	//enable prefix for this command with whatever String is already set
-	void startPrefix(){
+	Commander& startPrefix(){
 		commandState.bit.prefixMessage = true;
 		commandState.bit.newlinePrinted = true;
+		return *this;
 	}
 	//set postfix String for the command
-	void setPostfix(String pofx){
+	Commander& setPostfix(String pofx){
 		postfixString = pofx;
 		commandState.bit.postfixMessage = true;
+		return *this;
 		//commandState.bit.newlinePrinted = true;
 	}
 	//enable Postfix for this command with whatever String is already set
-	void startPostfix(){
+	Commander& startPostfix(){
 		commandState.bit.postfixMessage = true;
+		return *this;
 		//commandState.bit.newlinePrinted = true;
 	}
-	void startFormatting(){
+	Commander& startFormatting(){
 		commandState.bit.prefixMessage = true;
 		commandState.bit.newlinePrinted = true;
 		commandState.bit.postfixMessage = true;
+		return *this;
 	}
-	void autoFormat(bool state){ ports.settings.bit.autoFormat = state;}
-	bool autoFormat()					{ return ports.settings.bit.autoFormat;}
+	Commander&  autoFormat(bool state){ ports.settings.bit.autoFormat = state; return *this;}
+	bool autoFormat()									{ return ports.settings.bit.autoFormat;}
 
-	void printCommandPrompt();
+	Commander& printCommandPrompt();
 	
 	bool containsTrue();
 	bool containsFalse();
 	bool containsOn();
 	bool containsOff();
 	
-	void   setDelimiters(String myDelims);
-	String getDelimiters();
-	void 	 addDelimiter(char newDelim) {delimiters += newDelim;}
+	Commander&  delimiters(String myDelims)				{ if(myDelims != "")	delimiterChars = myDelims; return *this;}
+	String 			delimiters()											{return delimiterChars;}
+	Commander& 	addDelimiter(char newDelim) 			{delimiterChars += newDelim; return *this;}
 	
-	void setCommentChar(char cmtChar)     {commentChar    = cmtChar;}
-	void setReloadChar(char reloadChar)   {reloadCommandChar = reloadChar;}
-	void setEndOfLineChar(char eol) 			{endOfLineChar         = eol;}
-	void setPromptChar(char eol) 			    {promptChar         = eol;}
+	Commander&  commentChar(char cmtChar)     		{commentCharacter    = cmtChar; return *this;}
+	char 				commentChar()     								{return commentCharacter;}
+	Commander&  reloadChar(char reloadChar)   		{reloadCommandCharacter = reloadChar; return *this;}
+	char 				reloadChar()     									{return reloadCommandCharacter;}
+	Commander&  endOfLineChar(char eol) 					{endOfLineCharacter         = eol; return *this;}
+	char 				endOfLineChar()     							{return endOfLineCharacter;}
+	Commander&  promptChar(char eol) 			    		{promptCharacter         = eol; return *this;}
+	char  			promptChar() 			    						{return promptCharacter;}
 	//void setDelimChar(char eol) 			    {delimChar         = eol;}
 	
-	void echo(bool sState) 								{ports.settings.bit.echoTerminal = sState;}
-	void printComments(bool cState)				{ports.settings.bit.printComments = cState;}
-	void echoToAlt(bool sState) 					{if(ports.altPort) ports.settings.bit.echoToAlt = sState;} //only allow this if the altPort exists
-	void copyRepyAlt(bool sState)  				{if(ports.altPort) ports.settings.bit.copyResponseToAlt = sState; } //only allow this if the altPort exists
+	Commander& echo(bool sState) 								{ports.settings.bit.echoTerminal = sState; return *this;}
+	bool echo() 																{return ports.settings.bit.echoTerminal;}
+	Commander& printComments(bool cState)				{ports.settings.bit.printComments = cState; return *this;}
+	bool printComments()												{return ports.settings.bit.printComments;}
+	Commander& echoToAlt(bool sState) 					{if(ports.altPort) ports.settings.bit.echoToAlt = sState; return *this;} //only allow this if the altPort exists
+	bool echoToAlt() 					      						{return ports.settings.bit.echoToAlt;} //only allow this if the altPort exists
+	Commander& copyRepyAlt(bool sState)  				{if(ports.altPort) ports.settings.bit.copyResponseToAlt = sState;  return *this;} //only allow this if the altPort exists
+	bool copyRepyAlt()  				      					{return ports.settings.bit.copyResponseToAlt;} //only allow this if the altPort exists
 	
-	void commandProcessor(bool state)  		{ports.settings.bit.commandParserEnabled = state;}
-	bool commandProcessor() 							{return ports.settings.bit.commandParserEnabled;}
+	Commander& commandProcessor(bool state)  		{ports.settings.bit.commandParserEnabled = state; return *this;}
+	bool commandProcessor() 										{return ports.settings.bit.commandParserEnabled;}
 	
-	void stripCR(bool sState) 						{ports.settings.bit.stripCR = sState;}
-	bool stripCR() 												{return ports.settings.bit.stripCR;}
+	Commander& stripCR(bool sState) 						{ports.settings.bit.stripCR = sState; return *this;}
+	bool stripCR() 															{return ports.settings.bit.stripCR;}
 	
-	void multiCommander(bool enable) 			{ports.settings.bit.multiCommanderMode = enable;}
-	bool multiCommander() 								{return ports.settings.bit.multiCommanderMode;}
+	Commander& multiCommander(bool enable) 			{ports.settings.bit.multiCommanderMode = enable; return *this;}
+	bool multiCommander() 											{return ports.settings.bit.multiCommanderMode;}
 	
-	void errorMessages(bool state)				{ports.settings.bit.errorMessagesEnabled = state;}
-	bool errorMessages() 									{return ports.settings.bit.errorMessagesEnabled;}
+	Commander& errorMessages(bool state)				{ports.settings.bit.errorMessagesEnabled = state; return *this;}
+	bool errorMessages() 												{return ports.settings.bit.errorMessagesEnabled;}
 	
-	void commandPrompt(bool state)				{ports.settings.bit.commandPromptEnabled = state;}
-	bool commandPrompt() 									{return ports.settings.bit.commandPromptEnabled;}
+	Commander& commandPrompt(bool state)				{ports.settings.bit.commandPromptEnabled = state; return *this;}
+	bool commandPrompt() 												{return ports.settings.bit.commandPromptEnabled;}
 	
-	void showHelp(bool state)				    	{ports.settings.bit.helpEnabled = state;}
-	bool showHelp() 											{return ports.settings.bit.helpEnabled;}
+	Commander& showHelp(bool state)				    	{ports.settings.bit.helpEnabled = state; return *this;}
+	bool showHelp() 														{return ports.settings.bit.helpEnabled;}
 
-	void internalCommands(bool state)			{ports.settings.bit.internalCommandsEnabled = state;}
-	bool internalCommands() 							{return ports.settings.bit.internalCommandsEnabled;}
+	Commander& internalCommands(bool state)			{ports.settings.bit.internalCommandsEnabled = state; return *this;}
+	bool internalCommands() 										{return ports.settings.bit.internalCommandsEnabled;}
 	
-	void showInternalCommands(bool state) {ports.settings.bit.printInternalCommands = state;}
-	bool showInternalCommands() 					{return ports.settings.bit.printInternalCommands;}
+	Commander& showInternalCommands(bool state) {ports.settings.bit.printInternalCommands = state; return *this;}
+	bool showInternalCommands() 								{return ports.settings.bit.printInternalCommands;}
 	
-	void autoChain(bool state)						{ports.settings.bit.autoChain = state;}
-	bool autoChain()											{return ports.settings.bit.autoChain;}
+	Commander& autoChain(bool state)						{ports.settings.bit.autoChain = state; return *this;}
+	bool autoChain()														{return ports.settings.bit.autoChain;}
 	
-	void autoChainErrors(bool state)			{ports.settings.bit.autoChainSurpressErrors = state;}
-	bool autoChainErrors()								{return ports.settings.bit.autoChainSurpressErrors;}
+	Commander& autoChainErrors(bool state)			{ports.settings.bit.autoChainSurpressErrors = state; return *this;}
+	bool autoChainErrors()											{return ports.settings.bit.autoChainSurpressErrors;}
 	
 	
-	void chain()								 					{commandState.bit.chain = true;}
-	void unchain();
+	Commander& chain()								 					{commandState.bit.chain = true; return *this;}
+	Commander& unchain();
 	
-	cmdSettings_t  getSettings() 											{return ports.settings;}
-	void  				 setSettings(cmdSettings_t newSet)  {ports.settings = newSet;}
+	cmdSettings_t  	settings() 											{return ports.settings;}
+	Commander&  	 	settings(cmdSettings_t newSet)  {ports.settings = newSet; return *this;}
 	
-	portSettings_t getPortSettings() 											  {return ports;}
-	void           setPortSettings(portSettings_t newPorts) {ports = newPorts;}
+	portSettings_t 	portSettings() 											  {return ports;}
+	Commander&     	portSettings(portSettings_t newPorts) {ports = newPorts; return *this;}
 	
-	void 		setPrintDelay(uint8_t dTime) 	{primntDelayTime = dTime;}
-	uint8_t getPrintDelay() 							{return primntDelayTime;}
+	Commander& 			printDelayTime(uint8_t dTime) 	{primntDelayTime = dTime; return *this;}
+	uint8_t 				printDelayTime() 								{return primntDelayTime;}
 	
-	void printDelay(bool enable) 			{ports.settings.bit.useDelay = enable;}
-	bool printDelay() 								{return ports.settings.bit.useDelay;}
+	Commander& printDelay(bool enable) 							{ports.settings.bit.useDelay = enable; return *this;}
+	bool printDelay() 															{return ports.settings.bit.useDelay;}
 	
-	void printDiagnostics();
+	Commander& printDiagnostics();
 
 	template <class iType>
 	bool getInt(iType &myIvar)	{ 
@@ -433,9 +447,9 @@ public:
 	uint8_t getInternalCommandLength() {return INTERNAL_COMMAND_ITEMS;}
 	String getInternalCommandItem(uint8_t internalItem);
 	uint16_t getReadIndex() {return dataReadIndex;}
-	void rewind();
-	void printCommandList();
-	void printCommanderVersion();
+	Commander& rewind();
+	Commander& printCommandList();
+	Commander& printCommanderVersion();
 	String bufferString = ""; //the buffer - public so user functions can read it
 	String commanderName = "CMD";
 	
@@ -515,13 +529,13 @@ private:
 	uint8_t* commandLengths;
 	uint8_t endIndexOfLastCommand = 0;
 	uint8_t longestCommand = 0;
-	char commentChar = '#'; //marks a line as a comment - ignored by the command parser
-	char reloadCommandChar = '/'; //send this character to automatically reprocess the old buffer - same as resending the last command from the users POV.	
-	char promptChar = '>';
+	char commentCharacter = '#'; //marks a line as a comment - ignored by the command parser
+	char reloadCommandCharacter = '/'; //send this character to automatically reprocess the old buffer - same as resending the last command from the users POV.	
+	char promptCharacter = '>';
 	//char* delimiters;
-	String delimiters = "= :,\t\\/|";
+	String delimiterChars = "= :,\t\\/|";
 	//char delimChar = '='; //special delimiter character - Is used IN ADDITION to the default space char to mark the end of a command or seperation between items
-	char endOfLineChar = '\n';
+	char endOfLineCharacter = '\n';
   uint16_t bytesWritten = 0; //overflow check for bytes written into the buffer
 	uint16_t bufferSize = SBUFFER_DEFAULT;
 	uint16_t dataReadIndex = 0; //for parsing many numbers

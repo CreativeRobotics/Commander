@@ -43,7 +43,7 @@ bool getHandler(Commander &Cmdr){
   }else{
     Cmdr.println("handing control to get command object");
     //backup the port setting from the commander we are about to transfer control to.
-    savedSettings = getcmd.getPortSettings();
+    savedSettings = getcmd.portSettings();
     //Set the Commander pointer to the sub commander 1 object
     activeCommander = &getcmd;
     //Transfer this Cmdr to the new active commander
@@ -67,7 +67,7 @@ bool setHandler(Commander &Cmdr){
   }else{
     Cmdr.println("handing control to set command object");
     //backup the port setting from the commander we are about to transfer control to.
-    savedSettings = setcmd.getPortSettings();
+    savedSettings = setcmd.portSettings();
     //Set the Commander pointer to the sub commander 1 object
     activeCommander = &setcmd;
     //Transfer this Cmdr to the new active commander

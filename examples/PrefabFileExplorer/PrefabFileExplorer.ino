@@ -10,7 +10,7 @@
  *  The Arduino Serial terminal does NOT allow you to send this character and so you cannot terminate the file download when using the Arduino Serial terminal.
  */
 #include <Commander.h>
-#include <PrefabFileNavigator.h>
+#include <prefabs\SDCards\PrefabFileNavigator.h>
 
 #include <SPI.h>
 SdFat SD;
@@ -49,7 +49,7 @@ void setup() {
   cmd.attachSpecialHandler(streamToFileHandler);
   cmd.begin(&Serial, &Serial,  masterCommands, numOfMasterCmds);
   //cmd.begin(&Serial, &Serial,  fileCommands, numOfFileCmds);
-  cmd.enablePrompt();
+  cmd.commandPrompt(ON);
   cmd.commanderName = prompt;
   cmd.echo(true);
   //cmd.println("Files on card:");

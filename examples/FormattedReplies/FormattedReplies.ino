@@ -9,7 +9,6 @@ int myInt1 = 0;
 int myInt2 = 0;
 float myFloat1 = 0.0;
 float myFloat2 = 0.0;
-bool formattingOn = false;
 //SETUP ---------------------------------------------------------------------------
 void setup() {
   // put your setup code here, to run once:
