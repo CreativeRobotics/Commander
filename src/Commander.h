@@ -93,9 +93,9 @@ typedef union {
 //							31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
 //default is 	0b 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  1  0  1  1  1  0  1  1  0  0  0
 //const String CommanderVersionNumber = "3.0.0";
-const uint8_t majorVersion = 3;
-const uint8_t minorVersion = 3;
-const uint8_t subVersion   = 0;
+const uint8_t majorVersion = 4;
+const uint8_t minorVersion = 0;
+const uint8_t subVersion   = 1;
 
 typedef enum streamType_t{
 	UNDEFINED_STREAM 	= 0,
@@ -510,7 +510,7 @@ private:
 	uint8_t getInternalCmdLength(const char intCmd[]);
 	//utility to print the buffer contents as integer values
 	void printBuffer(){
-		for(unsigned int n = 0; n < bufferString.length(); n++){
+		for(uint32_t n = 0; n < bufferString.length(); n++){
 			write('[');
 			print((int)bufferString.charAt(n));
 			write(']');
