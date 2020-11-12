@@ -182,7 +182,7 @@ public:
 	String 				getPayloadString();
 	bool   				feedString(String newString);
 	Commander&   	loadString(String newString);
-	Commander&   	setPending(bool pState)									{commandState.bit.isCommandPending = pState;} //sets the pending command bit - used if manually writing to the buffer
+	Commander&   	setPending(bool pState)									{commandState.bit.isCommandPending = pState; return *this;} //sets the pending command bit - used if manually writing to the buffer
 	Commander&	 	write(uint8_t character) 								{bufferString += character; return *this;}
 	bool 	 				endLine();
 	Commander& 	 	startStreaming() 												{commandState.bit.dataStreamOn = true; return *this;} //set the streaming function ON
@@ -510,7 +510,7 @@ private:
 	uint8_t getInternalCmdLength(const char intCmd[]);
 	//utility to print the buffer contents as integer values
 	void printBuffer(){
-		for(int n = 0; n < bufferString.length(); n++){
+		for(unsigned int n = 0; n < bufferString.length(); n++){
 			write('[');
 			print((int)bufferString.charAt(n));
 			write(']');
