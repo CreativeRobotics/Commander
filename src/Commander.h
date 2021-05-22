@@ -94,8 +94,8 @@ typedef union {
 //default is 	0b 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  1  0  1  1  1  0  1  1  0  0  0
 //const String CommanderVersionNumber = "3.0.0";
 const uint8_t majorVersion = 4;
-const uint8_t minorVersion = 1;
-const uint8_t subVersion   = 0;
+const uint8_t minorVersion = 0;
+const uint8_t subVersion   = 1;
 
 typedef enum streamType_t{
 	UNDEFINED_STREAM 	= 0,
@@ -171,8 +171,6 @@ public:
 	bool   update();
 	Commander&	 setPassPhrase(String& phrase) 	{passPhrase = &phrase; return *this;}
 	Commander&   printPassPhrase() 							{print(*passPhrase); return *this;}
-	Commander&	 setUserString(String& str) 		{userString = &str; return *this;}
-	Commander&   printUserString() 							{print(*userString); return *this;}
 	Commander& 	 lock() 												{ports.settings.bit.locked = true; return *this;}
 	Commander& 	 unlock() 											{ports.settings.bit.locked = false; return *this;}
 	Commander& 	 setLockType(bool hlState) 			{ports.settings.bit.useHardLock = hlState; return *this;}
@@ -543,7 +541,7 @@ private:
 	uint16_t dataReadIndex = 0; //for parsing many numbers
 	const char* internalCommandArray[INTERNAL_COMMAND_ITEMS];
 	String *passPhrase = NULL;
-	String *userString = NULL;
+	
 	uint8_t primntDelayTime = 0; //
 };
 	
