@@ -28,11 +28,12 @@ bool myFunc(Commander &Cmdr){
 
 //Initialisation function that avoids having to forward declare the command array and a size variable.
 void initialiseCommander(){
-  cmd.begin(&Serial, masterCommands, sizeof(masterCommands));
-  cmd.commandPrompt(ON); //enable the command prompt
-  cmd.echo(true);     //Echo incoming characters to theoutput port
-  cmd.errorMessages(ON); //error messages are enabled - it will tell us if we issue any unrecognised commands
-  cmd.autoChain(ON);
+  cmd.begin(&Serial, masterCommands, sizeof(masterCommands))
+                                                            .commandPrompt(ON)
+                                                            .echo(true)
+                                                            .errorMessages(ON)
+                                                            .autoChain(ON)
+                                                            .setUserString(deviceInfo);
 }
 
 

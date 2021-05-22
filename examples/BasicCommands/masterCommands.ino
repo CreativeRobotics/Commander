@@ -27,6 +27,7 @@ void initialiseCommander(){
   cmd.echo(true);     //Echo incoming characters to theoutput port
   cmd.errorMessages(ON); //error messages are enabled - it will tell us if we issue any unrecognised commands
   cmd.autoChain(ON);
+  cmd.setUserString(deviceInfo);
 }
 
 //These are the command handlers, there needs to be one for each command in the command array myCommands[]

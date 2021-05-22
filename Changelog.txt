@@ -1,6 +1,11 @@
 Commander changelog
 (Changelog started at 1.2.3)
 
+4.1.0
+
+Added setUserString(&String) and printUserString(). A String can be created with user defined information, for example a product name, web URL and firmware version. This String will be printed at the start of the help page and status query page (the '?' command). This allows the user to incorporate their own device or product information into the command system. The string can be formatted however the user wants, including with newlines, tabs etc, and will be printed exactly as is - Other help page items print the comment characterat the start of each line, if the user wants the user String to also appear as comment lines then they need to incorporate the comment characters in the String themselves.
+Updated test suite sketch with example use.
+
 Commander 4.0.0 - Method act
 
 Method CHAIN'O'RAMA! All methods that used to return void now return a *this reference allowing them to be chained.

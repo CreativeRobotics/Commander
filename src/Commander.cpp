@@ -1312,7 +1312,8 @@ bool Commander::isEndOfCommand(char dataByte){
 
 
 Commander& Commander::printCommandList(){
-	  //Prints all the commands
+	  //Prints all the commands, start with the user string if it exists
+	if(userString != NULL) println(*userString);
   uint8_t n = 0;
 	String cmdLine = String(commentCharacter);
 	cmdLine.concat(commanderName);
@@ -1354,7 +1355,8 @@ String Commander::getWhiteSpace(uint8_t spaces){
 //==============================================================================================================
 
 Commander& Commander::printCommanderVersion(){
-	
+	//add user string printing. This comes first because the users version number and other info might be more important than Commander ...
+	if(userString != NULL) println(*userString);
 	write(commentCharacter);
 	print(F("\tCommander version "));
 	print(majorVersion);

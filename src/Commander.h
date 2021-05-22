@@ -93,8 +93,8 @@ typedef union {
 //							31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
 //default is 	0b 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  1  0  1  1  1  0  1  1  0  0  0
 //const String CommanderVersionNumber = "3.0.0";
-const uint8_t majorVersion = 3;
-const uint8_t minorVersion = 3;
+const uint8_t majorVersion = 4;
+const uint8_t minorVersion = 1;
 const uint8_t subVersion   = 0;
 
 typedef enum streamType_t{
@@ -171,6 +171,8 @@ public:
 	bool   update();
 	Commander&	 setPassPhrase(String& phrase) 	{passPhrase = &phrase; return *this;}
 	Commander&   printPassPhrase() 							{print(*passPhrase); return *this;}
+	Commander&	 setUserString(String& str) 		{userString = &str; return *this;}
+	Commander&   printUserString() 							{print(*userString); return *this;}
 	Commander& 	 lock() 												{ports.settings.bit.locked = true; return *this;}
 	Commander& 	 unlock() 											{ports.settings.bit.locked = false; return *this;}
 	Commander& 	 setLockType(bool hlState) 			{ports.settings.bit.useHardLock = hlState; return *this;}
@@ -182,7 +184,7 @@ public:
 	String 				getPayloadString();
 	bool   				feedString(String newString);
 	Commander&   	loadString(String newString);
-	Commander&   	setPending(bool pState)									{commandState.bit.isCommandPending = pState;} //sets the pending command bit - used if manually writing to the buffer
+	Commander&   	setPending(bool pState)									{commandState.bit.isCommandPending = pState; return *this;} //sets the pending command bit - used if manually writing to the buffer
 	Commander&	 	write(uint8_t character) 								{bufferString += character; return *this;}
 	bool 	 				endLine();
 	Commander& 	 	startStreaming() 												{commandState.bit.dataStreamOn = true; return *this;} //set the streaming function ON
@@ -510,7 +512,7 @@ private:
 	uint8_t getInternalCmdLength(const char intCmd[]);
 	//utility to print the buffer contents as integer values
 	void printBuffer(){
-		for(int n = 0; n < bufferString.length(); n++){
+		for(uint32_t n = 0; n < bufferString.length(); n++){
 			write('[');
 			print((int)bufferString.charAt(n));
 			write(']');
@@ -541,7 +543,7 @@ private:
 	uint16_t dataReadIndex = 0; //for parsing many numbers
 	const char* internalCommandArray[INTERNAL_COMMAND_ITEMS];
 	String *passPhrase = NULL;
-	
+	String *userString = NULL;
 	uint8_t primntDelayTime = 0; //
 };
 	
