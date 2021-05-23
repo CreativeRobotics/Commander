@@ -171,6 +171,8 @@ public:
 	bool   update();
 	Commander&	 setPassPhrase(String& phrase) 	{passPhrase = &phrase; return *this;}
 	Commander&   printPassPhrase() 							{print(*passPhrase); return *this;}
+	Commander&	 setUserString(String& str) 		{userString = &str; return *this;}
+	Commander&   printUserString() 							{print(*userString); return *this;}
 	Commander& 	 lock() 												{ports.settings.bit.locked = true; return *this;}
 	Commander& 	 unlock() 											{ports.settings.bit.locked = false; return *this;}
 	Commander& 	 setLockType(bool hlState) 			{ports.settings.bit.useHardLock = hlState; return *this;}
@@ -541,7 +543,7 @@ private:
 	uint16_t dataReadIndex = 0; //for parsing many numbers
 	const char* internalCommandArray[INTERNAL_COMMAND_ITEMS];
 	String *passPhrase = NULL;
-	
+	String *userString = NULL;
 	uint8_t primntDelayTime = 0; //
 };
 	
