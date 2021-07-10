@@ -136,7 +136,7 @@ bool Commander::streamData(){
 			//println("EOF Found, tidying up");
 			commandState.bit.dataStreamOn = false;
 			//get rid of any newlines or CRs in the stream
-			while(ports.inPort->peek() == '\n' || ports.inPort->peek() == '\r') ports.inPort->read();
+			while(ports.inPort->peek() == endOfLineCharacter || ports.inPort->peek() == '\r') ports.inPort->read();
 			//call the handler again so it can clean up and close anything that needs closing
 			commandState.bit.commandHandled = !handleCustomCommand();
 			resetBuffer();
@@ -215,7 +215,7 @@ String Commander::getPayload(){
 String Commander::getPayloadString(){
 	//return the payload minus any newline
 	if(hasPayload()){
-		return bufferString.substring(dataReadIndex, bufferString.indexOf('\n'));
+		return bufferString.substring(dataReadIndex, bufferString.indexOf(endOfLineCharacter));
 	}
 	return "";
 	/*
@@ -625,6 +625,13 @@ bool Commander::containsOff(){
 	return false;
 }
 //==============================================================================================================
+
+Commander&  Commander::endOfLineChar(char eol){
+	endOfLineCharacter         = eol;
+	if(endOfLineCharacter == '\r') return stripCR(false);
+	return *this;
+}
+//==============================================================================================================
 void Commander::computeLengths(){
 	//compute the length of each command
 	if(commandListEntries == 0) return;
@@ -661,7 +668,7 @@ bool Commander::handleCommand(){
 		return 0;
 	}
 	 //write a newline if the command prompt is enabled so reply messages appear on a new line
-	if(ports.settings.bit.commandPromptEnabled && !ports.settings.bit.echoTerminal) write('\n');
+	if(ports.settings.bit.commandPromptEnabled && !ports.settings.bit.echoTerminal) write(endOfLineCharacter);
 	if(ports.settings.bit.autoFormat) startFormatting();
 	
 	//Match command will handle internal commands 

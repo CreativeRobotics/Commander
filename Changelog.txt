@@ -1,5 +1,9 @@
 Commander changelog
 (Changelog started at 1.2.3)
+4.1.1
+Minor bugfix related to wonky resease.
+Fixed missing references to endOfLineCharacter that were still '/n'. **Changing endOfLineCharacter may have implications for how streams get printed.
+Changed endOfLineChar(char) so that if the end of line character is set to a carriage return, stripCR is automatically set to false.
 
 4.1.0
 

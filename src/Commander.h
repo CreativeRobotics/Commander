@@ -95,7 +95,7 @@ typedef union {
 //const String CommanderVersionNumber = "3.0.0";
 const uint8_t majorVersion = 4;
 const uint8_t minorVersion = 1;
-const uint8_t subVersion   = 0;
+const uint8_t subVersion   = 1;
 
 typedef enum streamType_t{
 	UNDEFINED_STREAM 	= 0,
@@ -365,7 +365,7 @@ public:
 	char 				commentChar()     								{return commentCharacter;}
 	Commander&  reloadChar(char reloadChar)   		{reloadCommandCharacter = reloadChar; return *this;}
 	char 				reloadChar()     									{return reloadCommandCharacter;}
-	Commander&  endOfLineChar(char eol) 					{endOfLineCharacter         = eol; return *this;}
+	Commander&  endOfLineChar(char eol);
 	char 				endOfLineChar()     							{return endOfLineCharacter;}
 	Commander&  promptChar(char eol) 			    		{promptCharacter         = eol; return *this;}
 	char  			promptChar() 			    						{return promptCharacter;}
