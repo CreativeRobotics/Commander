@@ -307,6 +307,14 @@ Commander& Commander::attachCommands(const commandList_t *commands, uint32_t siz
 	computeLengths();
 	return *this;
 }
+
+Commander&  	Commander::attachCommandArray(const commandList_t *commands, uint32_t length){
+	commandList = commands;
+	//numOfCmds = sizeof(myCommands) /  sizeof(myCommands[0]); //calculate the number of commands so we know the array bounds
+	commandListEntries = length;
+	computeLengths();
+	return *this;
+}
 //==============================================================================================================
 Commander& Commander::quickSetHelp(){
 	if( bufferString.indexOf("help") > -1 )	commandState.bit.quickHelp = true;
@@ -710,7 +718,11 @@ bool Commander::handleCommand(){
 			#if defined BENCHMARKING_ON
 				benchmarkStartTime4 = micros();
 			#endif
-			returnVal = commandList[commandIndex].handler(*this);
+			if(commandState.bit.quickHelp) {
+					//look through the extra help string array and print it out
+					if(extraHelp != NULL) println(extraHelp[commandIndex]);
+					commandState.bit.quickHelp = false;
+			}else	returnVal = commandList[commandIndex].handler(*this);
 			#if defined BENCHMARKING_ON
 				benchmarkTime4 = micros() - benchmarkStartTime4;
 			#endif
@@ -1319,6 +1331,23 @@ bool Commander::isEndOfCommand(char dataByte){
 
 
 Commander& Commander::printCommandList(){
+	
+	//Check if there is a payload, if there is then assume help was followed by a command:
+	  //Check if extraHelp is not NULL
+	  //If so then reload the payload and set quickHelp to true.
+		//on reloading, when the command is matched, it should print the contents of the extraHelp array at the index for the command
+		//This checks to see if the buffer contains more characters than 'help'+2 because the next character could be a delimiter, and there will be an end of line char as well
+	if( extraHelp != NULL && bufferString.length() > 6){//charAt(4) != endOfLineCharacter ){
+		commandState.bit.quickHelp = true;
+		bufferString.remove(0, endIndexOfLastCommand+1);
+		//Serial.print(bufferString);
+		//keep this command prompt disabled if it wasn't already
+		commandPrompt(OFF); //dsiable the prompt so it doesn't print twice
+		commandState.bit.commandHandled = !handleCommand(); //try and handle the command
+		if( ports.settings.bit.multiCommanderMode == false ) commandPrompt(ON); //re-enable the prompt if in single commander mode so it prints on exit
+		return *this;
+	}
+	
 	  //Prints all the commands, start with the user string if it exists
 	if(userString != NULL) println(*userString);
   uint8_t n = 0;
@@ -1339,6 +1368,10 @@ Commander& Commander::printCommandList(){
 	write(commentCharacter);
 	print(F(" Delimiters: "));
 	println(delimiterChars);
+	write(commentCharacter);
+	print(F(" Extended Help: "));
+	if(extraHelp != NULL) println("Yes");
+	else println("No");
 	if(!ports.settings.bit.internalCommandsEnabled || !ports.settings.bit.printInternalCommands) return *this;
 	write(commentCharacter);
   println(F(" Internal Commands:"));
@@ -1407,6 +1440,11 @@ Commander& Commander::printCommanderVersion(){
 	write(commentCharacter);
 	print(F("\tLock: "));
 	ports.settings.bit.useHardLock ? println("Hard") : println("Soft");
+	
+	write(commentCharacter);
+	print(F("\tExtended Help: "));
+	if(extraHelp != NULL) println("Yes");
+	else println("No");
 	
 	if(customHandler != NULL){
 		

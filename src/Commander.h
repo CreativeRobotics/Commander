@@ -9,6 +9,13 @@
 
 class Commander;
 
+
+//const String CommanderVersionNumber = "3.0.0";
+const uint8_t majorVersion = 4;
+const uint8_t minorVersion = 2;
+const uint8_t subVersion   = 0;
+
+
 //#define BENCHMARKING_ON
 
 #define DEBUG_INDEXER false
@@ -34,7 +41,7 @@ typedef struct commandList_t{
 	char* manualString;
 } commandList_t;
 
-extern const commandList_t myCommands[];
+//extern const commandList_t myCommands[];
 	
 typedef union {
   struct {
@@ -92,10 +99,7 @@ typedef union {
 //Settings register:
 //							31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
 //default is 	0b 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0  0  1  0  1  1  1  0  1  1  0  0  0
-//const String CommanderVersionNumber = "3.0.0";
-const uint8_t majorVersion = 4;
-const uint8_t minorVersion = 1;
-const uint8_t subVersion   = 1;
+
 
 typedef enum streamType_t{
 	UNDEFINED_STREAM 	= 0,
@@ -160,7 +164,7 @@ const String unlockMessage = "Unlocked";
 const char EOFChar = 4; //end of file character for terminal
 
 //Commander Class ===========================================================================================
-class Commander{
+class Commander : public Stream {
 public:
 	Commander();
 	Commander(uint16_t reservedBuffer);
@@ -173,6 +177,7 @@ public:
 	Commander&   printPassPhrase() 							{print(*passPhrase); return *this;}
 	Commander&	 setUserString(String& str) 		{userString = &str; return *this;}
 	Commander&   printUserString() 							{print(*userString); return *this;}
+	Commander&	 setExtraHelp(char* ptr[])				{extraHelp = ptr; return *this;}
 	Commander& 	 lock() 												{ports.settings.bit.locked = true; return *this;}
 	Commander& 	 unlock() 											{ports.settings.bit.locked = false; return *this;}
 	Commander& 	 setLockType(bool hlState) 			{ports.settings.bit.useHardLock = hlState; return *this;}
@@ -185,7 +190,7 @@ public:
 	bool   				feedString(String newString);
 	Commander&   	loadString(String newString);
 	Commander&   	setPending(bool pState)									{commandState.bit.isCommandPending = pState; return *this;} //sets the pending command bit - used if manually writing to the buffer
-	Commander&	 	write(uint8_t character) 								{bufferString += character; return *this;}
+	Commander&	 	add(uint8_t character) 								{bufferString += character; return *this;}
 	bool 	 				endLine();
 	Commander& 	 	startStreaming() 												{commandState.bit.dataStreamOn = true; return *this;} //set the streaming function ON
 	Commander& 	 	stopStreaming() 												{commandState.bit.dataStreamOn = false; return *this;} //set the streaming function OFF
@@ -209,8 +214,11 @@ public:
 	Commander& 	 	attachDefaultHandler(cmdHandler handler) 	{defaultHandler = handler; return *this;}
 	Commander&   	setBuffer(uint16_t buffSize);
 	Commander&  	attachCommands(const commandList_t *commands, uint32_t size);
+	Commander&  	attachCommandArray(const commandList_t *commands, uint32_t length);
 	Commander&   	setStreamType(streamType_t newType) 			{ports.settings.bit.streamType = (uint16_t)newType; return *this;}
 	streamType_t 	getStreamType() 													{return (streamType_t)ports.settings.bit.streamType;}
+	
+	Commander&   reloadCommands() 											  	{computeLengths(); return *this;}
 	
 	int 	 				quick(String cmd);
 	Commander& 	 	quickSetHelp();
@@ -222,98 +230,41 @@ public:
 	Commander&   	quickGet(String cmd, float var);
 	Commander&  	quickGet(String cmd, double var);
 	Commander& 	 	quickGet(String cmd, String str);
-	
-	size_t println() {
+		
+	size_t write(uint8_t b) {
 		yield();
-		if( ports.settings.bit.copyResponseToAlt ) printAltln();
-		yield();
-		if(ports.outPort){ 
-			return ports.outPort->println(); 
-		}
-		return 0;
-	}
-	//Template functions for print, println and write
-	template <class printType>
-	size_t print(printType printableVariable){
-		yield();
-		if( ports.settings.bit.copyResponseToAlt ) printAlt(printableVariable);
-		yield();
-		if(ports.outPort){
-			doPrefix();
-			return ports.outPort->print(printableVariable); 
-		}
-		return 0;
-	}
-	
-	template <class printType>
-	size_t print(printType printableVariable, int fmt){
-		yield();
-		if( ports.settings.bit.copyResponseToAlt ) printAlt(printableVariable, fmt);
-		yield();
-		if(ports.outPort){ 
-			doPrefix();
-			return ports.outPort->print(printableVariable, fmt); 
-		}
-		return 0;
-	}
-	
-	template <class printType>
-	size_t println(printType printableVariable){
-		yield();
-		if( ports.settings.bit.copyResponseToAlt ) printAltln(printableVariable);
-		yield();
-		if(ports.outPort){
-				doPrefixln();
-				if(commandState.bit.postfixMessage){
-					ports.outPort->print(printableVariable); 
-					return ports.outPort->println(postfixString);
-				}
-			return ports.outPort->println(printableVariable); 
-		}
-		return 0;
-	}
-	
-	template <class printType>
-	size_t println(printType printableVariable, int fmt){
-		yield();
-		if( ports.settings.bit.copyResponseToAlt ) printAltln(printableVariable, fmt);
-		yield();
-		if(ports.outPort){ 
-				doPrefixln();
-				if(commandState.bit.postfixMessage){
-					ports.outPort->print(printableVariable, fmt); 
-					return ports.outPort->println(postfixString);
-				}
-			return ports.outPort->println(printableVariable, fmt); 
-		}
-		return 0;
-	}
-	
-	template <class printType>
-	size_t write(printType printableVariable)	{ 
-		yield();
-		if( ports.settings.bit.copyResponseToAlt ) writeAlt(printableVariable);
+		if( ports.settings.bit.copyResponseToAlt ) writeAlt(b);
 		yield();
 		if(ports.outPort){ 
 				doPrefix();
-				if(isNewline(printableVariable)) ports.outPort->print(postfixString);
-			return ports.outPort->write(printableVariable); 
+				if(isNewline(b)) ports.outPort->print(postfixString);
+			return ports.outPort->write(b); 
 		}
 		return 0;
 	}
-	
-	template <class printType>
-	size_t write(printType printableVariable, int length)	{ 
-		yield();
-		if( ports.settings.bit.copyResponseToAlt ) writeAlt(printableVariable, length);
-		yield();
-		if(ports.outPort){ 
-				doPrefix();
-				if(isNewline(printableVariable)) ports.outPort->print(postfixString);
-			return ports.outPort->write(printableVariable, length); 
-		}
-		return 0;
+
+	int available() { return bufferString.length(); }
+
+	int read() {
+		if(!bufferString.length())
+			return -1;
+		char retchar = bufferString.charAt(0);
+		bufferString.remove(0, 1);
+		return retchar;
 	}
+
+	int peek() {
+		if(!bufferString.length())
+			return -1;
+		return bufferString.charAt(0);
+	}
+
+	int availableForWrite() { return ports.outPort ? ports.outPort->availableForWrite() : 0; }
+
+	void flush() { if(ports.outPort) ports.outPort->flush(); }
+
+	using Print::write; // pull in write(String) and write(buf, size) from Print
+
 	
 	
 	Commander& setPrefix(String prfx){
@@ -530,6 +481,7 @@ private:
   int16_t commandIndex = -1;
 	uint8_t* commandLengths;
 	uint8_t endIndexOfLastCommand = 0;
+	char** extraHelp;
 	uint8_t longestCommand = 0;
 	char commentCharacter = '#'; //marks a line as a comment - ignored by the command parser
 	char reloadCommandCharacter = '/'; //send this character to automatically reprocess the old buffer - same as resending the last command from the users POV.	

@@ -1,5 +1,16 @@
 Commander changelog
 (Changelog started at 1.2.3)
+4.2.0
+Added reloadCommands() function. This re-computes the command lengths so that command strings can be changed at run time. If the command list is declared as a non const, then the string and function pointers can be reassigned. In order to change a command string to one of a different length commander needs to recompute the command lengths, so this function needs to be called if a command string pointer is assigned to a string of a different length.
+Added attachCommandArray() method similar to attachCommands but takes the array length as an argument instead of sizeof().
+Added an extra help system. You can attach an array of strings. If this is attached and help has a payload it will try and match the payload to a command and print out the extra help in the array index that matches the command.
+Extra help availability is indicated in the help and query information.
+Updated to inherit Arduino print class and replaced template methods with methods for the print class. Thanks to Louis Beaudoin of Embedded creations for lots of work on this and some other up coming features https://github.com/embedded-creations
+Changed write() to add() to fix conflict with print class.
+Added example showing reallocation of command Handler, command text and help text to different character arrays and functions.
+Added example showing how to use one command to edit the help text and command text of another command stored as a String object.
+Added an example of a dynamically generated command list: A command can be used to create a custom submenu of items.
+
 4.1.1
 Minor bugfix related to wonky resease.
 Fixed missing references to endOfLineCharacter that were still '/n'. **Changing endOfLineCharacter may have implications for how streams get printed.
