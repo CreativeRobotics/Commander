@@ -493,7 +493,8 @@ private:
   uint16_t bytesWritten = 0; //overflow check for bytes written into the buffer
 	uint16_t bufferSize = SBUFFER_DEFAULT;
 	uint16_t dataReadIndex = 0; //for parsing many numbers
-	const char* internalCommandArray[INTERNAL_COMMAND_ITEMS];
+	const char* internalCommandArray[INTERNAL_COMMAND_ITEMS] = { "U", "X",
+		"?", "help", "echo", "echox", "errors"};
 	String *passPhrase = NULL;
 	String *userString = NULL;
 	uint8_t primntDelayTime = 0; //
