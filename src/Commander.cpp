@@ -524,7 +524,7 @@ bool Commander::getString(String &myString){
 uint8_t Commander::countItems(){
 	//Returns the number of items in the payload. Items are any substrings with a space, delimChar or endOfLineCharacter at each end.
 	uint8_t items = 0;
-	bool state = 0;
+	//bool state = 0;
 	if(!hasPayload()) return items; //has payload returns true if an item was found after the command
 	items++;
 	while(findNextItem()) items++;
@@ -655,9 +655,11 @@ void Commander::computeLengths(){
 uint8_t Commander::getLength(uint8_t indx){
 	uint8_t length = 0;
 	for(uint8_t n = 0; n < 128; n++){
-		if(commandList[indx].commandString[n] != NULL) length++;
+		if(commandList[indx].commandString[n] != '\0') length++;
 		else return length;
 	}
+	//Should this return zero if max length is reached ...?
+	return length;
 }
 //==============================================================================================================
 bool Commander::handleCommand(){
@@ -937,7 +939,7 @@ bool Commander::checkCommand(uint16_t cmdIdx){
 		benchmarkCounter++;
 	#endif
 	
-	if(bufferString.length() < commandLengths[cmdIdx]+1) return false; //no match if the buffer is shorter than the command+1 (buffer will have the end of line char)
+	if(bufferString.length() < (int16_t)commandLengths[cmdIdx]+1) return false; //no match if the buffer is shorter than the command+1 (buffer will have the end of line char)
 	if(commandLengths[cmdIdx] == 1){
 		//This command was a single char, if it is a match then return true if the next char in the buffer is an end of command char (newline, space or delim)
 		if(bufferString.charAt(0) != commandList[cmdIdx].commandString[0]) return false;
@@ -1240,7 +1242,7 @@ bool Commander::delimToNextItem(){
 bool Commander::itemToNextDelim(){
 		//move dataReadIndex from an item to the next delimiter
 		//If you start on a quote, don't stop until you get another
-	bool endOnQuote = false;
+	//bool endOnQuote = false;
 	if(!ports.settings.bit.ignoreQuotes){
 		if(bufferString.charAt(dataReadIndex) == '"'){
 			//print("Found open quote at ");
@@ -1279,7 +1281,7 @@ bool Commander::isDelimiter(char ch){
 bool Commander::isItem(char ch){
 	if(isDelimiter(ch)) return false;
 	if(isEndOfLine(ch)) return false;
-	if(ch == NULL) return false;
+	if(ch == '\0') return false;
 	return true;
 }
 //==============================================================================================================
@@ -1458,7 +1460,7 @@ Commander& Commander::printCommanderVersion(){
 
 uint8_t Commander::getInternalCmdLength(const char intCmd[]){
 	for(int n = 0; n < 8; n++){
-		if(intCmd[n] == NULL) return n;
+		if(intCmd[n] == '\0') return n;
 	}
 	return 8;
 }

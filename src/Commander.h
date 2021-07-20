@@ -258,8 +258,19 @@ public:
 			return -1;
 		return bufferString.charAt(0);
 	}
+	
+	int availableForWrite() {
+#if !defined(ESP8266) && !defined(ESP32)
+		return ports.outPort ? ports.outPort->availableForWrite() : 0;
+#else
+		// availableForWrite() is not part of the Stream class on ESP32 (and probably ESP8266)
+		return 0;
+#endif
+	}
+	
+	
 
-	int availableForWrite() { return ports.outPort ? ports.outPort->availableForWrite() : 0; }
+	//int availableForWrite() { return ports.outPort ? ports.outPort->availableForWrite() : 0; }
 
 	void flush() { if(ports.outPort) ports.outPort->flush(); }
 
