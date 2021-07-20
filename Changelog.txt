@@ -1,6 +1,10 @@
 Commander changelog
 (Changelog started at 1.2.3)
 
+4.2.2
+Updated to 4.2.2 because I messed up the last releases on Github. Needs a whole new release tag to fix.
+
+
 4.2.0
 Added reloadCommands() function. This re-computes the command lengths so that command strings can be changed at run time. If the command list is declared as a non const, then the string and function pointers can be reassigned. In order to change a command string to one of a different length commander needs to recompute the command lengths, so this function needs to be called if a command string pointer is assigned to a string of a different length.
 Added attachCommandArray() method similar to attachCommands but takes the array length as an argument instead of sizeof().

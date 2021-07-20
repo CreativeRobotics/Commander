@@ -9,11 +9,9 @@
 
 class Commander;
 
-
-//const String CommanderVersionNumber = "3.0.0";
 const uint8_t majorVersion = 4;
 const uint8_t minorVersion = 2;
-const uint8_t subVersion   = 0;
+const uint8_t subVersion   = 2;
 
 
 //#define BENCHMARKING_ON
