@@ -1,6 +1,6 @@
 # Commander is a system for handling commands sent over serial ports or other Stream objects.
 
-## It is designed to make it easy to create complex and powerful text based interfaces for controlling your sketch.
+## Easily create complex and powerful text based interfaces for controlling your sketch.
 
 # [Visit the wiki](https://github.com/CreativeRobotics/Commander/wiki)
 
