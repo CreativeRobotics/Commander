@@ -1,13 +1,7 @@
 #include "Commander.h"
 
 //Initialise the array of internal commands with the constructor
-Commander::Commander(): internalCommandArray ({ "U",
-																								"X",
-																								"?",
-																								"help",
-																								"echo",
-																								"echox",
-																								"errors"}){
+Commander::Commander(){
 	bufferString.reserve(bufferSize);
 	ports.settings.reg = COMMANDER_DEFAULT_REGISTER_SETTINGS;
 	commandState.reg = COMMANDER_DEFAULT_STATE_SETTINGS;
@@ -15,13 +9,7 @@ Commander::Commander(): internalCommandArray ({ "U",
 
 }
 //==============================================================================================================
-Commander::Commander(uint16_t reservedBuffer): internalCommandArray ({ 	"U",
-																																				"X",
-																																				"?",
-																																				"help",
-																																				"echo",
-																																				"echox",
-																																				"errors"}){
+Commander::Commander(uint16_t reservedBuffer){
 	//bufferString.reserve(bufferSize);
 	bufferSize = reservedBuffer;
 	bufferString.reserve(bufferSize);
@@ -939,7 +927,7 @@ bool Commander::checkCommand(uint16_t cmdIdx){
 		benchmarkCounter++;
 	#endif
 	
-	if(bufferString.length() < (int16_t)commandLengths[cmdIdx]+1) return false; //no match if the buffer is shorter than the command+1 (buffer will have the end of line char)
+	if(bufferString.length() < (int16_t)commandLengths[cmdIdx]+1U) return false; //no match if the buffer is shorter than the command+1 (buffer will have the end of line char)
 	if(commandLengths[cmdIdx] == 1){
 		//This command was a single char, if it is a match then return true if the next char in the buffer is an end of command char (newline, space or delim)
 		if(bufferString.charAt(0) != commandList[cmdIdx].commandString[0]) return false;
