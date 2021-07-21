@@ -1,6 +1,11 @@
 Commander changelog
 (Changelog started at 1.2.3)
 
+4.2.3
+Update *char to const *char to remove compiler warnings.
+Update some examples to remove casting from const *char to *char.
+Removed ideosyncratic spellings from examples.
+
 4.2.2
 Updated to 4.2.2 because I messed up the last releases on Github. Needs a whole new release tag to fix.
 

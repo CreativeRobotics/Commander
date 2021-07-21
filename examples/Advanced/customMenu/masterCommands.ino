@@ -24,9 +24,10 @@ const char* createHelp = "Create a command list (eg 'create 2 4 3')";
 
 const char* revertCommand = "revert";
 const char* revertHelp = "revert to the old list";
-commandList_t masterCommands[] = {
-  {(char*)listCommand,          listHandler,        (char*)listhelp},
-  {(char*)createCommand,        createHandler,      (char*)createHelp},
+
+const commandList_t masterCommands[] = {
+  {listCommand,          listHandler,        listhelp},
+  {createCommand,        createHandler,      createHelp},
 };
 
 commandList_t *newCmds;
@@ -136,9 +137,9 @@ bool createHandler(Commander &Cmdr){
     newCmds[n].manualString   = getHelp(values[n]);
   }
   //tack the revert option to the end of the array
-  newCmds[items].commandString  = (char*)revertCommand;
+  newCmds[items].commandString  = revertCommand;
   newCmds[items].handler        = revertHandler;
-  newCmds[items].manualString   = (char*)revertHelp;
+  newCmds[items].manualString   = revertHelp;
   //Attach it to commander using the attachCommandArray method
   Cmdr.attachCommandArray(newCmds, items+1);
   Cmdr.println("New command list created and activated");

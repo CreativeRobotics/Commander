@@ -5,8 +5,6 @@ Commander::Commander(){
 	bufferString.reserve(bufferSize);
 	ports.settings.reg = COMMANDER_DEFAULT_REGISTER_SETTINGS;
 	commandState.reg = COMMANDER_DEFAULT_STATE_SETTINGS;
-
-
 }
 //==============================================================================================================
 Commander::Commander(uint16_t reservedBuffer){

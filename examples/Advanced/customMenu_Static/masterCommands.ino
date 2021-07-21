@@ -35,30 +35,30 @@ const char* commandList[numberOfCommands] = {
 
 
 const char* helpList[numberOfCommands] = {
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
-  "helpy text for command sprif",
+  "help text for command cmd0",
+  "help text for command cmd1",
+  "help text for command cmd2",
+  "help text for command cmd3",
+  "help text for command cmd4",
+  "help text for command cmd5",
+  "help text for command cmd6",
+  "help text for command cmd7",
+  "help text for command cmd8",
+  "help text for command cmd9",
+  "help text for command cmd10",
+  "help text for command cmd11",
+  "help text for command cmd12",
+  "help text for command cmd13",
+  "help text for command cmd14",
+  "help text for command cmd15",
+  "help text for command cmd16",
+  "help text for command cmd17",
+  "help text for command cmd18",
+  "help text for command cmd19",
+  "help text for command cmd20",
+  "help text for command cmd21",
+  "help text for command cmd22",
+  "help text for command cmd23",
 };
 
 
@@ -91,7 +91,7 @@ cmdHandler handlers[numberOfCommands] = {
   Handler23,
 };
 
-commandList_t startupCommands[] = {
+const commandList_t startupCommands[] = {
   {"add", addHandler, "Add a command (add [handlerNo])"},
   {"finish", finishHandler, "Finish adding commands and load the list"},
 };
@@ -99,7 +99,7 @@ commandList_t startupCommands[] = {
 //uninitialised array to be filled
 commandList_t myCommands[maxItems];
 
-commandList_t *newCmds;
+
 /* Command handler template
 bool myFunc(Commander &Cmdr){
   //put your command handler code here
@@ -242,9 +242,9 @@ bool addHandler(Commander &Cmdr){
   }
   if(Cmdr.getInt(itemID)){
     if(itemID > -1 && itemID < numberOfCommands){
-      myCommands[commandCount].commandString  = (char*)commandList[itemID];
+      myCommands[commandCount].commandString  = commandList[itemID];
       myCommands[commandCount].handler        = handlers[itemID];
-      myCommands[commandCount].manualString   = (char*)helpList[itemID];
+      myCommands[commandCount].manualString   = helpList[itemID];
       Cmdr.print("Added the command ");
       Cmdr.print(commandList[itemID]);
       Cmdr.print(" as menu item ");

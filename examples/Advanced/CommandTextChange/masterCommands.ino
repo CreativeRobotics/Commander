@@ -6,14 +6,14 @@ String exHelpStr = "This is the extended help text for this command. It can be c
 String cmdStr = "test";
 
 commandList_t masterCommands[] = {
-  {(char*)cmdStr.c_str(), helloHandler,           (char*)helpStr.c_str()},
+  {cmdStr.c_str(), helloHandler,           helpStr.c_str()},
   {"set help",            setStringHandler,       "Set help text for the first command"},
   {"set extra help",      setExtraStringHandler,  "Set extended help for first command"},
   {"set command",         setCommandHandler,      "Set command text for the first command"},
 };
 
 
-char * extraHelp[] = {
+const char * extraHelp[] = {
   (char*)exHelpStr.c_str(),
   "'set help'\tSet the text that will display for the normal help of the first command.\nMake sure you don't exceed Commander buffer size!",
   "'set extra help'\tSet the text that will display for the extended help of the first command.\nMake sure you don't exceed Commander buffer size!",
@@ -56,7 +56,7 @@ bool setStringHandler(Commander &Cmdr){
   if(Cmdr.hasPayload()){
     helpStr = Cmdr.getPayloadString();
     //The pointer may have changed so get a new one
-    masterCommands[0].manualString = (char*)helpStr.c_str();
+    masterCommands[0].manualString = helpStr.c_str();
     Cmdr.print("Help string changed to:");
     Cmdr.println(helpStr);
   }
@@ -74,7 +74,7 @@ bool setExtraStringHandler(Commander &Cmdr){
   if(Cmdr.hasPayload()){
     exHelpStr = Cmdr.getPayloadString();
     //The pointer may have changed so get a new one
-    extraHelp[0] = (char*)exHelpStr.c_str();
+    extraHelp[0] = exHelpStr.c_str();
     Cmdr.print("Extended help string changed to:");
     Cmdr.println(exHelpStr);
   }
@@ -92,7 +92,7 @@ bool setCommandHandler(Commander &Cmdr){
   if(Cmdr.hasPayload()){
     cmdStr = Cmdr.getPayloadString();
     //The pointer may have changed so get a new one
-    masterCommands[0].commandString = (char*)cmdStr.c_str();
+    masterCommands[0].commandString = cmdStr.c_str();
     Cmdr.print("Command string changed to:");
     Cmdr.println(cmdStr);
     Cmdr.reloadCommands();

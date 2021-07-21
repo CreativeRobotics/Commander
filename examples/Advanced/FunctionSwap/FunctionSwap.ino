@@ -3,7 +3,7 @@
  */
 #include <Commander.h>
 Commander cmd;
-bool swopstate = 0;
+bool swapstate = 0;
 //User string - this can be anything you want, and is printed when the help and ? commands are used
 //Its a good idea to put the # symbol in front of each line so that if the response to these commands is fet to another commander, they will be interpreted as comments.
 String deviceInfo = "#\t(Start of user string)\n#\tCommander swop function example\n#\tDevice firmware version x.x.x revision x\n#\thttps://github.com/CreativeRobotics/Commander\n#\t(End of user string)";

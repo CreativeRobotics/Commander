@@ -11,7 +11,7 @@ class Commander;
 
 const uint8_t majorVersion = 4;
 const uint8_t minorVersion = 2;
-const uint8_t subVersion   = 2;
+const uint8_t subVersion   = 3;
 
 
 //#define BENCHMARKING_ON
@@ -34,9 +34,9 @@ typedef bool (*cmdHandler)(Commander& Cmdr); //command handler function pointer 
 //Command handler array type - contains command string and function pointer
 
 typedef struct commandList_t{
-	char* commandString;
+	const char* commandString;
   cmdHandler handler;
-	char* manualString;
+	const char* manualString;
 } commandList_t;
 
 //extern const commandList_t myCommands[];
@@ -175,7 +175,7 @@ public:
 	Commander&   printPassPhrase() 							{print(*passPhrase); return *this;}
 	Commander&	 setUserString(String& str) 		{userString = &str; return *this;}
 	Commander&   printUserString() 							{print(*userString); return *this;}
-	Commander&	 setExtraHelp(char* ptr[])				{extraHelp = ptr; return *this;}
+	Commander&	 setExtraHelp(const char* ptr[]){extraHelp = ptr; return *this;}
 	Commander& 	 lock() 												{ports.settings.bit.locked = true; return *this;}
 	Commander& 	 unlock() 											{ports.settings.bit.locked = false; return *this;}
 	Commander& 	 setLockType(bool hlState) 			{ports.settings.bit.useHardLock = hlState; return *this;}
@@ -216,7 +216,7 @@ public:
 	Commander&   	setStreamType(streamType_t newType) 			{ports.settings.bit.streamType = (uint16_t)newType; return *this;}
 	streamType_t 	getStreamType() 													{return (streamType_t)ports.settings.bit.streamType;}
 	
-	Commander&   reloadCommands() 											  	{computeLengths(); return *this;}
+	Commander&    reloadCommands() 											  	{computeLengths(); return *this;}
 	
 	int 	 				quick(String cmd);
 	Commander& 	 	quickSetHelp();
@@ -490,7 +490,7 @@ private:
   int16_t commandIndex = -1;
 	uint8_t* commandLengths;
 	uint8_t endIndexOfLastCommand = 0;
-	char** extraHelp;
+	const char** extraHelp;
 	uint8_t longestCommand = 0;
 	char commentCharacter = '#'; //marks a line as a comment - ignored by the command parser
 	char reloadCommandCharacter = '/'; //send this character to automatically reprocess the old buffer - same as resending the last command from the users POV.	

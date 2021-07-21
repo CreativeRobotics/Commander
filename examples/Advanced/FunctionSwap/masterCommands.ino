@@ -14,15 +14,15 @@ const char* otherCommand = "bonjour";
 const char* otherHelp = "saluer";
 
 commandList_t masterCommands[] = {
-  {(char*)normalCommand,       helloHandler,     (char*)normalHelp},
-  {"swop",        swopHandler,      "swop the command strings and function handler"},
+  {normalCommand, helloHandler,     normalHelp},
+  {"swap",        swapHandler,      "swap the command strings and function handler"},
 };
 
 //Extended help text. This is an array of pointers to strings so we can assign one of the char arrays from above, and use the swop function to change the text.
 //(There needs to me the same number of elements in this array as in the command list.)
-char * extraHelp[] = {
-  (char*)extendedHelp,
-  "'swop'\tSwap between two different function handlers for the first command.\nWhen this is called the function handler, command text and help text for the first command in the list will be swapped.",
+const char * extraHelp[] = {
+  extendedHelp,
+  "'swap'\tSwap between two different function handlers for the first command.\nWhen this is called the function handler, command text and help text for the first command in the list will be swapped.",
 };
 /* Command handler template
 bool myFunc(Commander &Cmdr){
@@ -61,21 +61,21 @@ bool bonjourHandler(Commander &Cmdr){
   return 0;
 }
 
-bool swopHandler(Commander &Cmdr){
+bool swapHandler(Commander &Cmdr){
   Cmdr.println("Swapping command handler");
-  if(swopstate){
+  if(swapstate){
     masterCommands[0].handler = helloHandler;
-    masterCommands[0].commandString = (char*)normalCommand;
-    masterCommands[0].manualString = (char*)normalHelp;
-    extraHelp[0] = (char*)extendedHelp;
+    masterCommands[0].commandString = normalCommand;
+    masterCommands[0].manualString = normalHelp;
+    extraHelp[0] = extendedHelp;
   }else{
     masterCommands[0].handler = bonjourHandler;
-    masterCommands[0].commandString = (char*)otherCommand;
-    masterCommands[0].manualString = (char*)otherHelp;
-    extraHelp[0] = (char*)otherExtendedHelp;
+    masterCommands[0].commandString = otherCommand;
+    masterCommands[0].manualString = otherHelp;
+    extraHelp[0] = otherExtendedHelp;
   }
   //ESSENTIAL: You must call this if the command string text is changed otherwide Commander might not be able to recognise the new command
   Cmdr.reloadCommands();
-  swopstate = !swopstate;
+  swapstate = !swapstate;
   return 0;
 }

@@ -8,7 +8,7 @@ bool getCommandArgCode(char helpText[], cmdArgs_t commandArguments){
 	int16_t lastBracket = -1;
 	uint8_t idx = 0;
 	//find the opening and closing brackets
-	while(helpText[idx] != NULL){
+	while(helpText[idx] != '\0'){
 		//step through the help string
 		if(helpText[idx] 			== CMD_ARG_START_BRACKET){
 			if(idx > 1) break; //if the bracket is not in the 1st or 2nd place, exit.
