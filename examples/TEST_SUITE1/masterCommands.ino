@@ -44,11 +44,16 @@ bool helloHandler(Commander &Cmdr){
   Cmdr.println(Cmdr.commanderName);
   Cmdr.print("This is my buffer: ");
   Cmdr.print(Cmdr.bufferString);
+  Cmdr.print("This handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
   //Cmdr.printDiagnostics();
   return 0;
 }
 
 bool setHandler(Commander &Cmdr){
+  
+  Cmdr.print("This handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
   //quickget function
   //Call quickSetHelp() first to handle any help command
   Cmdr.quickSetHelp();
@@ -61,6 +66,9 @@ bool setHandler(Commander &Cmdr){
   return 0;
 }
 bool getHandler(Commander &Cmdr){
+  
+  Cmdr.print("This handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
   //quickset function
   //Call quickSetHelp() first to handle any help command
   Cmdr.quickSetHelp();
@@ -75,6 +83,9 @@ bool getHandler(Commander &Cmdr){
 
 
 bool getIntHandler(Commander &Cmdr){
+  
+  Cmdr.print("This handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
   Cmdr.print("myInt = ");
   Cmdr.println(myInt);
   //Cmdr.printDiagnostics();
@@ -82,6 +93,9 @@ bool getIntHandler(Commander &Cmdr){
 }
 
 bool setIntHandler(Commander &Cmdr){
+  
+  Cmdr.print("This handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
   if(Cmdr.getInt(myInt)){
     Cmdr.print("myInt set to ");
     Cmdr.println(myInt);
@@ -90,6 +104,9 @@ bool setIntHandler(Commander &Cmdr){
   return 0;
 }
 bool getFloatHandler(Commander &Cmdr){
+  
+  Cmdr.print("This handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
   Cmdr.print("myFloat = ");
   Cmdr.println(myFloat);
   
@@ -98,6 +115,9 @@ bool getFloatHandler(Commander &Cmdr){
 }
 
 bool setFloatHandler(Commander &Cmdr){
+  
+  Cmdr.print("This handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
   if(Cmdr.getFloat(myFloat)){
     Cmdr.print("myFloat set to ");
     Cmdr.println(myFloat, 4); //print with 4 decimal places
@@ -107,6 +127,8 @@ bool setFloatHandler(Commander &Cmdr){
 }
 
 bool setIntsHandler(Commander &Cmdr){
+  Cmdr.print("This handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
   //create an array to store any values we find
   int values[4] = {0,0,0,0};
 
@@ -135,6 +157,8 @@ bool setIntsHandler(Commander &Cmdr){
 }
 
 bool setFloatsHandler(Commander &Cmdr){
+  Cmdr.print("This handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
   float values[4] = {0.0,0.0,0.0,0.0};
   int itms = Cmdr.countItems();
   Cmdr.print("There are ");
@@ -159,6 +183,8 @@ bool setFloatsHandler(Commander &Cmdr){
 }
 
 bool setStringsHandler(Commander &Cmdr){
+  Cmdr.print("This handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
   String myString = "";
   int itms = Cmdr.countItems();
   Cmdr.print("There are ");
@@ -178,6 +204,8 @@ bool setStringsHandler(Commander &Cmdr){
 }
 
 bool hiddenHandler(Commander &Cmdr){
+  Cmdr.print("This handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
   Cmdr.println("This command is hidden from the help system");
   //Cmdr.printDiagnostics();
   Cmdr.unchain();
