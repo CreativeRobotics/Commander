@@ -10,8 +10,8 @@
 class Commander;
 
 const uint8_t majorVersion = 4;
-const uint8_t minorVersion = 2;
-const uint8_t subVersion   = 3;
+const uint8_t minorVersion = 3;
+const uint8_t subVersion   = 0;
 
 
 //#define BENCHMARKING_ON
@@ -412,6 +412,7 @@ public:
 	Commander& rewind();
 	Commander& printCommandList();
 	Commander& printCommanderVersion();
+	int16_t getCommandIndex()										{return commandIndex;}
 	String bufferString = ""; //the buffer - public so user functions can read it
 	String commanderName = "CMD";
 	

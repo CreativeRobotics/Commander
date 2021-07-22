@@ -1,5 +1,7 @@
 Commander changelog
 (Changelog started at 1.2.3)
+4.3.0
+Added getCommandIndex that returns the index of the last used command in the command array. Calling this from a handler will inform you which command in the command array was used to invoke the handler.
 
 4.2.3
 Update *char to const *char to remove compiler warnings.
