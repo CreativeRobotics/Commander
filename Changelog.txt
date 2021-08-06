@@ -1,5 +1,12 @@
 Commander changelog
 (Changelog started at 1.2.3)
+4.3.1
+Changed write() to remove calls to yield() that were slowing Commander down under some circumstances.
+Fixed possible bug with formatting not working properly, and not working with the alt port.
+Added counters for bytes sent to both ports. If byte count > countLimit they are reset and delay(pDelayTime) is called. delay() will call yield() - possibly helps with some systems, for example bluetooth, that need time to transmit a packet or handle other time sensitive work.
+Added methods to read and write to countLimit.
+depreciated setPrintDelay. This is not required. To disable delays just set printDelayTime to zero.
+
 4.3.0
 Added getCommandIndex that returns the index of the last used command in the command array. Calling this from a handler will inform you which command in the command array was used to invoke the handler.
 

@@ -11,7 +11,7 @@ class Commander;
 
 const uint8_t majorVersion = 4;
 const uint8_t minorVersion = 3;
-const uint8_t subVersion   = 0;
+const uint8_t subVersion   = 1;
 
 
 //#define BENCHMARKING_ON
@@ -87,7 +87,7 @@ typedef union {
 		uint32_t stripCR:1; 								//14 Strip carriage returns from the buffer
 		uint32_t streamType:2;							//15-16 A two bit code indicating the stream type (Serial, File, HTML, OTHER)
 		uint32_t autoFormat:1; 							//17 bflag to indicate that all replies should be formatted with pre and postfix text
-		uint32_t useDelay:1; 								//18 Insert a delay before println
+		uint32_t useDelay:1; 								//18 ***DEPRECIATED*** Insert a delay before println
 		uint32_t autoChain:1; 							//19 Automatically chain commands, and to hell with the consequences
 		uint32_t autoChainSurpressErrors:1;	//20 Prevent error messages when chaining commands
 		uint32_t ignoreQuotes:1;						//21 don't treat items in quotes as special
@@ -230,15 +230,28 @@ public:
 	Commander& 	 	quickGet(String cmd, String str);
 		
 	size_t write(uint8_t b) {
-		yield();
-		if( ports.settings.bit.copyResponseToAlt ) writeAlt(b);
-		yield();
-		if(ports.outPort){ 
-				doPrefix();
-				if(isNewline(b)) ports.outPort->print(postfixString);
-			return ports.outPort->write(b); 
+		//Track outgoing bytes, call yield() if you go over 127 so any other process that is buffering characters can do some work (e.g a bluetooth stack)
+		if(altCount > countLimit || outCount > countLimit) {
+			outCount = 0;
+			altCount = 0;
+			delay(pDelayTime); //calls to delay will also call yield()
+			//Serial.print("[DLY]");
 		}
-		return 0;
+		//Was the last byte a newline?
+		if(commandState.bit.newlinePrinted) {
+			if(commandState.bit.prefixMessage){
+				outCount += ports.outPort->print(prefixString); 
+				if( ports.settings.bit.copyResponseToAlt ) altCount += ports.altPort->print(prefixString);
+			}
+		}
+		if( ports.settings.bit.copyResponseToAlt ) altCount += writeAlt(b);
+		//assume outPort is not NULL, it shouldn't be ... but writing to a null port doesn't seem to break anything
+		//check and set newline state now.
+		commandState.bit.newlinePrinted = isNewline(b);	
+		if(commandState.bit.postfixMessage && commandState.bit.newlinePrinted) outCount += ports.outPort->print(postfixString);
+		
+		outCount++;
+		return ports.outPort->write(b); 
 	}
 
 	int available() { return bufferString.length(); }
@@ -380,11 +393,18 @@ public:
 	portSettings_t 	portSettings() 											  {return ports;}
 	Commander&     	portSettings(portSettings_t newPorts) {ports = newPorts; return *this;}
 	
-	Commander& 			printDelayTime(uint8_t dTime) 	{primntDelayTime = dTime; return *this;}
-	uint8_t 				printDelayTime() 								{return primntDelayTime;}
+	Commander& 			printDelayTime(uint8_t dTime) 	{pDelayTime = dTime; return *this;}
+	uint8_t 				printDelayTime() 								{return pDelayTime;}
 	
+	
+	////DEPRECIATED--------------
 	Commander& printDelay(bool enable) 							{ports.settings.bit.useDelay = enable; return *this;}
 	bool printDelay() 															{return ports.settings.bit.useDelay;}
+	////DEPRECIATED--------------
+	
+	
+	Commander& delayCounter(uint8_t cnt) 							{countLimit = cnt; return *this;}
+	uint8_t delayCounter() 															{return countLimit;}
 	
 	Commander& printDiagnostics();
 
@@ -427,15 +447,15 @@ private:
 	bool streamData();
 	void echoPorts(int portByte);
 	void bridgePorts();
-		void doPrefix(){ //handle prefixes for command replies
+		/*void doPrefix(){ //handle prefixes for command replies
 			if(commandState.bit.prefixMessage && commandState.bit.newlinePrinted) ports.outPort->print(prefixString); 
 			commandState.bit.newlinePrinted = false;
 		}
 		void doPrefixln(){ //handle prefixes for command replies with newlines
-			if( ports.settings.bit.useDelay ) delay(primntDelayTime);
+			if( ports.settings.bit.useDelay ) delay(pDelayTime);
 			if(commandState.bit.prefixMessage && commandState.bit.newlinePrinted) ports.outPort->print(prefixString); 
 			commandState.bit.newlinePrinted = true;
-		}
+		}*/
 	bool qSetHelp(String &cmd);
 	int qSetSearch(String &cmd);
 	void computeLengths();
@@ -507,7 +527,9 @@ private:
 	const char* internalCommandArray[INTERNAL_COMMAND_ITEMS] = { "U", "X", "?", "help", "echo", "echox", "errors"};
 	String *passPhrase = NULL;
 	String *userString = NULL;
-	uint8_t primntDelayTime = 0; //
+	uint8_t pDelayTime = 0; //
+	uint8_t outCount = 0, altCount = 0, countLimit = 127;
+	
 };
 	
 #endif //Commander_h

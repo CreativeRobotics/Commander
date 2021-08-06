@@ -1,7 +1,7 @@
 //All commands for 'master'
 //COMMAND ARRAY ------------------------------------------------------------------------------
 
-const commandList_t masterCommands[] = {
+commandList_t masterCommands[] = {
   {"hello",       helloHandler,     "hello"},
   {"set",         setHandler,       "Quick set commands. Help: \"set help\""},
   {"get",         getHandler,       "Quick get commands. Help: \"get help\""},
@@ -16,6 +16,8 @@ const commandList_t masterCommands[] = {
   {"set floats",  setFloatsHandler, "set up to four floats"},
   {"set strings", setStringsHandler,"set up to four Strings"},
   {"hidden2",     hiddenHandler,    "-Command hidden from help"},
+  {"step",        stepHandler0,      "iterate through several handlers"},
+  {"print",        printHandler,      "print something"},
 };
 
 /* Command handler template
@@ -24,7 +26,21 @@ bool myFunc(Commander &Cmdr){
   return 0;
 }
 */
+//Array of function pointers that can be stepped through
+cmdHandler handlerArray[] = {
+  stepHandler0,
+  stepHandler1,
+  stepHandler2,
+  stepHandler3,
+};
+uint8_t handlerIndex = 0;
 
+//function to step to the next handler and assign the pointer it to the command list pointer that was called.
+void handlerStep(int cmdIdx){
+  handlerIndex++;
+  if(handlerIndex > 3) handlerIndex = 0;
+  masterCommands[cmdIdx].handler = handlerArray[handlerIndex];
+}
 
 //Initialisation function that avoids having to forward declare the command array and a size variable.
 void initialiseCommander(){
@@ -204,10 +220,49 @@ bool setStringsHandler(Commander &Cmdr){
 }
 
 bool hiddenHandler(Commander &Cmdr){
-  Cmdr.print("This handler was called by command at index ");
+  Cmdr.print("===========================\nThis handler was called by command at index ");
   Cmdr.println(Cmdr.getCommandIndex());
   Cmdr.println("This command is hidden from the help system");
   //Cmdr.printDiagnostics();
   Cmdr.unchain();
+  return 0;
+}
+
+bool stepHandler0(Commander &Cmdr){
+  Cmdr.print("===========================\nThis handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
+  Cmdr.println("This is step handler 0\n===========================");
+  handlerStep(Cmdr.getCommandIndex());
+  return 0;
+}
+
+bool stepHandler1(Commander &Cmdr){
+  Cmdr.print("===========================\nThis handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
+  Cmdr.println("This is step handler 1\n===========================");
+  handlerStep(Cmdr.getCommandIndex());
+  return 0;
+}
+
+bool stepHandler2(Commander &Cmdr){
+  Cmdr.print("===========================\nThis handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
+  Cmdr.println("This is step handler 2\n===========================");
+  handlerStep(Cmdr.getCommandIndex());
+  return 0;
+}
+
+bool stepHandler3(Commander &Cmdr){
+  Cmdr.print("===========================\nThis handler was called by command at index ");
+  Cmdr.println(Cmdr.getCommandIndex());
+  Cmdr.println("This is step handler 3\n===========================");
+  handlerStep(Cmdr.getCommandIndex());
+  return 0;
+}
+bool printHandler(Commander &Cmdr){
+  String myString = "";
+  Cmdr.print("myString = ");
+  Cmdr.println(myString);
+  Cmdr.println("OK?");
   return 0;
 }

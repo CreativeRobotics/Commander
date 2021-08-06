@@ -73,6 +73,8 @@ reloadChar	KEYWORD2
 endOfLineChar	KEYWORD2
 setPrintDelay KEYWORD2
 printDelay KEYWORD2
+printDelayTime KEYWORD2
+delayCounter KEYWORD2
 echo KEYWORD2
 printComments	KEYWORD2
 echoToAlt	KEYWORD2
