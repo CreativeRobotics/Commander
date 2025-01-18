@@ -193,4 +193,4 @@ We can use any available delimiter in the command string so the command 'set int
 _Disclaimer: I'm not the best software engineer in the world so there may be some bits of silliness in my code. I welcome contributions that will improve Commander so long as they maintain a good balance between features and efficiency._
 
 Written by Bill Bigge.
-MIT license, all text above must be included in any redistributionle via USB and Bluetooth Serial. It also allows different command lists to be dynamically loaded so multiple command lists, and multiple Commander objects can be combined to produce hierarchical command structures.
+MIT license, all text above must be included in any redistribution.
